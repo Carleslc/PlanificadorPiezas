@@ -12,10 +12,12 @@ public class DataController {
 
 	private Config config;
 	private Database database;
+	private String piecesTable;
 	
 	public DataController() throws IOException, InvalidConfigurationException {
 		config = new Config("config.yml");
 		database = new AccessDatabase(config.getDatabaseLocation());
+		piecesTable = config.getPiecesTable();
 	}
 	
 	public void save(PieceDTO dto) {
