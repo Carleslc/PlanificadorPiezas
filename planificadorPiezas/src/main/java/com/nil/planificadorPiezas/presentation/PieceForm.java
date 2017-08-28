@@ -14,6 +14,7 @@ import javax.swing.border.EmptyBorder;
 
 import com.nil.planificadorPiezas.domain.PieceCallback;
 import com.nil.planificadorPiezas.domain.PieceController;
+import com.nil.planificadorPiezas.domain.PieceDTO;
 import com.nil.planificadorPiezas.presentation.messages.Message;
 import com.nil.planificadorPiezas.presentation.messages.WarningMessage;
 

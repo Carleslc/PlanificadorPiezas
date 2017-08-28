@@ -14,10 +14,19 @@
   </properties>
 
   <dependencies>
+  	<!-- Access DB -->
     <dependency>
     	<groupId>net.sf.ucanaccess</groupId>
     	<artifactId>ucanaccess</artifactId>
     	<version>4.0.2</version>
+    </dependency>
+    <!-- YAML Configuration -->
+    <dependency>
+        <groupId>org.simpleyaml</groupId>
+        <artifactId>simpleyaml</artifactId>
+        <version>1.0</version>
+        <scope>system</scope>
+        <systemPath>${project.basedir}/simpleyaml-1.0.jar</systemPath>
     </dependency>
   </dependencies>
 </project>

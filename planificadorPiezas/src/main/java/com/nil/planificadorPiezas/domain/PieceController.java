@@ -1,7 +1,5 @@
 package com.nil.planificadorPiezas.domain;
 
-import com.nil.planificadorPiezas.presentation.PieceDTO;
-
 public class PieceController {
 
 	public void process(PieceDTO dto, PieceCallback callback) {

@@ -1,4 +1,4 @@
-package com.nil.planificadorPiezas.presentation;
+package com.nil.planificadorPiezas.domain;
 
 public class PieceDTO {
 
