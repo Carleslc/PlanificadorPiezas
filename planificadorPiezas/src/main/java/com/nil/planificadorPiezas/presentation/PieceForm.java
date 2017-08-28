@@ -1,14 +1,19 @@
 package com.nil.planificadorPiezas.presentation;
 
 import java.awt.Color;
+import java.awt.GridBagConstraints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
@@ -21,7 +26,11 @@ import com.nil.planificadorPiezas.presentation.messages.WarningMessage;
 public class PieceForm extends JFrame {
 
 	private static final long serialVersionUID = -5045703627293054772L;
-	
+	private static JTextField input1;
+	private JLabel text1;
+	private List<JTextField> textFields = new ArrayList<JTextField>();
+	private static final int num_fases = 10;
+	private JTextField[] fields;
 	private PieceController controller;
 	private JPanel contentPane;
 	private boolean processing;
@@ -35,6 +44,11 @@ public class PieceForm extends JFrame {
 		setDefaultStyle();
 		setWindowSettings();
 		addContentPane();
+		
+		for (int i = 1; i < num_fases; i++) {
+			getFase1();
+			getLabel1(i);
+		}
 		addProcessButton();
 	}
 	
@@ -66,7 +80,26 @@ public class PieceForm extends JFrame {
 		contentPane.add(processButton);
 	}
 	
+	private void getFase1() {
+		JTextField jf = new JTextField (20);
+		contentPane.add(jf);
+		textFields.add(jf);
+	}
+	
+	private void getLabel1(int num) {
+		text1 = new JLabel("Fase " + (int)num);
+		contentPane.add(text1);
+	}	
 	private PieceDTO getPieceDTO() {
+
+		for (int i = 0; i < textFields.size();i++){
+			String horas_s =  textFields.get(i).getText().trim();
+			if(horas_s.isEmpty())
+				
+				horas_s = "0";
+			
+		  System.out.println("Horas en la fase " + i + " : " + horas_s + " h.");
+		}
 		return new PieceDTO(/* inputs */);
 	}
 	
