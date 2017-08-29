@@ -3,6 +3,10 @@ package com.nil.planificadorPiezas.presentation;
 import java.awt.Color;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 
@@ -12,9 +16,12 @@ import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
+import com.nil.planificadorPiezas.domain.DumpError;
 import com.nil.planificadorPiezas.domain.PieceCallback;
 import com.nil.planificadorPiezas.domain.PieceController;
 import com.nil.planificadorPiezas.domain.PieceDTO;
+import com.nil.planificadorPiezas.domain.Result;
+import com.nil.planificadorPiezas.presentation.messages.ErrorMessage;
 import com.nil.planificadorPiezas.presentation.messages.Message;
 import com.nil.planificadorPiezas.presentation.messages.WarningMessage;
 
@@ -41,7 +48,7 @@ public class PieceForm extends JFrame {
 	private void setWindowSettings() {
 		setBounds(200, 50, 512, 768);
 		setTitle("Planificador de Piezas");
-		setResizable(false);
+		setResizable(true);
 	}
 	
 	private void addContentPane() {
@@ -56,7 +63,7 @@ public class PieceForm extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (processing) {
-					new WarningMessage("Espera. Ya hay una pieza calculándose actualmente.").show();
+					WarningMessage.show("Espera. Ya hay una pieza calculándose actualmente.");
 					return;
 				}
 				processing = true;
@@ -71,10 +78,21 @@ public class PieceForm extends JFrame {
 	}
 	
 	private PieceCallback onProcessed() {
-		return result -> {
-			new Message("La pieza con el identificador " + result.getId()
-				+ " estará lista para el día " + dateFormatter.format(result.getFinishDate()) + ".").show();
-			processing = false;
+		return new PieceCallback() {
+			
+			@Override
+			public void onProcessed(Result result) {
+				Message.show("La pieza con el identificador " + result.getId()
+					+ " estará lista para el día " + dateFormatter.format(result.getFinishDate()) + ".");
+				processing = false;
+			}
+			
+			@Override
+			public void onError(Exception e) {
+				ErrorMessage.show("Ha ocurrido un error al procesar la pieza.");
+				DumpError.dump(e);
+				processing = false;
+			}
 		};
 	}
 	

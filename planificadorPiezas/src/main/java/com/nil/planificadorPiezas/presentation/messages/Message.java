@@ -39,4 +39,8 @@ public class Message {
 		JOptionPane.showMessageDialog(parentComponent, message, title, messageType);
 	}
 	
+	public static void show(String message) {
+		new Message(message).show();
+	}
+	
 }

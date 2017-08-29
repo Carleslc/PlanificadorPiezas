@@ -24,4 +24,8 @@ public class WarningMessage extends Message {
 		super(parentComponent, message, title, JOptionPane.WARNING_MESSAGE);
 	}
 	
+	public static void show(String message) {
+		new WarningMessage(message).show();
+	}
+	
 }
