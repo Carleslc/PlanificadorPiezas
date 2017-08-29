@@ -1,6 +1,5 @@
 package com.nil.planificadorPiezas.presentation;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -20,7 +19,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
-import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
@@ -52,7 +50,7 @@ public class PieceForm extends JFrame {
 		this.controller = controller;
 		processing = false;
 		
-		setDefaultStyle();
+		setStyle();
 		addContentPane();
 		addPhases();
 		addProcessButton();
@@ -159,7 +157,7 @@ public class PieceForm extends JFrame {
 		};
 	}
 	
-	private static void setDefaultStyle() {
+	private static void setStyle() {
 		try {
 			// Nimbus L&F style
 			UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
