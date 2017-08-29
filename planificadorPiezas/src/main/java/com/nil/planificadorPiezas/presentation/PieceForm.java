@@ -1,23 +1,27 @@
 package com.nil.planificadorPiezas.presentation;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.GridBagConstraints;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.PrintWriter;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
@@ -33,14 +37,14 @@ import com.nil.planificadorPiezas.presentation.messages.WarningMessage;
 public class PieceForm extends JFrame {
 
 	private static final long serialVersionUID = -5045703627293054772L;
-	private static JTextField input1;
-	private JLabel text1;
-	private List<JTextField> textFields = new ArrayList<JTextField>();
-	private static final int num_fases = 10;
-	private JTextField[] fields;
+	
+	private static final int NUM_PHASES = 10;
+	
 	private PieceController controller;
 	private JPanel contentPane;
 	private boolean processing;
+	
+	private List<JSpinner> phases = new ArrayList<>();
 	
 	private DateTimeFormatter dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG);
 	
@@ -49,26 +53,42 @@ public class PieceForm extends JFrame {
 		processing = false;
 		
 		setDefaultStyle();
-		setWindowSettings();
 		addContentPane();
-		
-		for (int i = 1; i < num_fases; i++) {
-			getFase1();
-			getLabel1(i);
-		}
+		addPhases();
 		addProcessButton();
+		setWindowSettings();
 	}
 	
 	private void setWindowSettings() {
-		setBounds(200, 50, 512, 768);
+		pack();
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+	    GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
+	    Rectangle rect = defaultScreen.getDefaultConfiguration().getBounds();
+	    int x = (int) (rect.getMaxX() - getWidth())/2;
+	    int y = (int) (rect.getMaxY() - getHeight())/2;
+	    setLocation(x, y);
+		setMinimumSize(new Dimension(getWidth(), getHeight()));
 		setTitle("Planificador de Piezas");
+		setIconImage(Icons.MAIN);
 		setResizable(true);
 	}
 	
 	private void addContentPane() {
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.PAGE_AXIS));
 		setContentPane(contentPane);
+	}
+	
+	private void addPhases() {
+		for (int i = 1; i <= NUM_PHASES; i++) {
+			JPanel phasePanel = new JPanel();
+			phasePanel.setBorder(new EmptyBorder(2, 2, 2, 2));
+			phasePanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+			addPhaseInput(phasePanel);
+			addPhaseLabel(i, phasePanel);
+			contentPane.add(phasePanel);
+		}
 	}
 	
 	private void addProcessButton() {
@@ -76,37 +96,47 @@ public class PieceForm extends JFrame {
 		processButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if (processing) {
-					WarningMessage.show("Espera. Ya hay una pieza calculándose actualmente.");
-					return;
-				}
-				processing = true;
-				controller.process(getPieceDTO(), onProcessed());
+				processButtonClicked();
 			}
 		});
-		contentPane.add(processButton);
+		JPanel bottomPanel = new JPanel();
+		bottomPanel.add(processButton);
+		contentPane.add(bottomPanel);
 	}
 	
-	private void getFase1() {
-		JTextField jf = new JTextField (20);
-		contentPane.add(jf);
-		textFields.add(jf);
+	private void addPhaseInput(JPanel to) {
+		JSpinner phaseSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 365, 1));
+		to.add(phaseSpinner);
+		phases.add(phaseSpinner);
 	}
 	
-	private void getLabel1(int num) {
-		text1 = new JLabel("Fase " + (int)num);
-		contentPane.add(text1);
-	}	
-	private PieceDTO getPieceDTO() {
-
-		for (int i = 0; i < textFields.size();i++){
-			String horas_s =  textFields.get(i).getText().trim();
-			if(horas_s.isEmpty())
-				
-				horas_s = "0";
-			
-		  System.out.println("Horas en la fase " + i + " : " + horas_s + " h.");
+	private void addPhaseLabel(int num, JPanel to) {
+		to.add(new JLabel("Horas fase " + num));
+	}
+	
+	private void processButtonClicked() {
+		if (processing) {
+			WarningMessage.show("Espera. Ya hay una pieza calculándose actualmente.");
+			return;
 		}
+		
+		int totalHoras = 0;
+		for (int i = 0; i < phases.size(); i++) {
+			int horas = (int) phases.get(i).getValue();
+			totalHoras += horas;
+			System.out.println("Horas en la fase " + i + " : " + horas + " h");
+		}
+		
+		if (totalHoras == 0) {
+			WarningMessage.show("Debes especificar como mínimo 1 fase.");
+			return;
+		}
+		
+		processing = true;
+		controller.process(getPieceDTO(), onProcessed());
+	}
+	
+	private PieceDTO getPieceDTO() {
 		return new PieceDTO(/* inputs */);
 	}
 	

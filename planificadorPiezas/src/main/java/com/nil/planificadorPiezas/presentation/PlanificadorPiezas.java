@@ -12,7 +12,6 @@ public class PlanificadorPiezas {
 		EventQueue.invokeLater(() -> {
 			try {
 				PieceForm form = new PieceForm(new PieceController());
-				form.setIconImage(Icons.MAIN);
 				form.setVisible(true);
 			} catch (Exception uncaught) {
 				ErrorMessage.show("Ha ocurrido un error inesperado: " + uncaught.getMessage());
