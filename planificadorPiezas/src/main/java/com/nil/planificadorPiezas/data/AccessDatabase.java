@@ -15,7 +15,8 @@ class AccessDatabase extends Database {
 	@Override
 	Connection getConnection() throws SQLException, ClassNotFoundException {
 		Class.forName("net.ucanaccess.jdbc.UcanaccessDriver");
-		return DriverManager.getConnection("jdbc:ucanaccess://" + databaseUrl);
+		String additionalSettings = "memory=false";
+		return DriverManager.getConnection("jdbc:ucanaccess://" + databaseUrl + ";" + additionalSettings);
 	}
 
 }
