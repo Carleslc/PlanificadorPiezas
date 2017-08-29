@@ -24,4 +24,8 @@ public class ErrorMessage extends Message {
 		super(parentComponent, message, title, JOptionPane.ERROR_MESSAGE);
 	}
 	
+	public static void show(String message) {
+		new ErrorMessage(message).show();
+	}
+	
 }
