@@ -1,2 +1,5 @@
 database: "/Users/carleslc/GitHub/PlanificadorPiezas/planificador.accdb"
 table: "piezas"
+num_fases: 10
+num_trabajadores: 10
+num_horas: 8
