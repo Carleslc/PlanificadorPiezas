@@ -1,15 +1,23 @@
 package com.nil.planificadorPiezas.domain;
 
-class Piece {
+import java.util.Map;
+
+public class Piece {
 	
-	private String id;
+	public String id;
+	public Map<Integer, Double> phases ;
 	
-	Piece(String id) {
+	Piece(String id, Map<Integer, Double> phases)  {
 		this.id = id;
+		this.phases = phases;
 	}
 	
-	String getId() {
+	public String getId() {
 		return id;
+	}
+	
+	public Map<Integer, Double> getPhases(){
+		return phases;
 	}
 	
 }

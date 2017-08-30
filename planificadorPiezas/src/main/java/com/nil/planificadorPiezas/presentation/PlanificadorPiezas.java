@@ -14,7 +14,9 @@ public class PlanificadorPiezas {
 				PieceForm form = new PieceForm(new PieceController());
 				form.setVisible(true);
 			} catch (Exception uncaught) {
+				System.out.println(uncaught.getMessage());
 				ErrorMessage.show("Ha ocurrido un error inesperado: " + uncaught.getMessage());
+				System.out.println(uncaught.getMessage());
 				DumpError.dump(uncaught);
 			}
 		});

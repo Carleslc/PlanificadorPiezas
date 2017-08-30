@@ -3,6 +3,7 @@ package com.nil.planificadorPiezas.domain;
 import java.sql.SQLException;
 import java.time.LocalDate;
 
+import com.healthmarketscience.jackcess.Database;
 import com.nil.planificadorPiezas.data.DataController;
 
 class PieceProcessor {
@@ -25,6 +26,8 @@ class PieceProcessor {
 	void process() {
 		new Thread(() -> {
 			try {
+				data.connect();
+				data.save(piece);
 				compute();
 				if (callback != null) callback.onProcessed(result);
 			} catch (Exception e) {

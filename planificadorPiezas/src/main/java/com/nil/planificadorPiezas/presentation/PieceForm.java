@@ -11,7 +11,9 @@ import java.awt.event.MouseEvent;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -41,7 +43,7 @@ public class PieceForm extends JFrame {
 	private PieceController controller;
 	private JPanel contentPane;
 	private boolean processing;
-	
+	private Map<Integer, Double> pieceDTO_list = new HashMap<Integer, Double>();
 	private List<JSpinner> phases = new ArrayList<>();
 	
 	private DateTimeFormatter dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG);
@@ -122,6 +124,7 @@ public class PieceForm extends JFrame {
 		for (int i = 0; i < phases.size(); i++) {
 			int horas = (int) phases.get(i).getValue();
 			totalHoras += horas;
+			pieceDTO_list.put(i,(double) horas);
 			System.out.println("Horas en la fase " + i + " : " + horas + " h");
 		}
 		
@@ -135,7 +138,8 @@ public class PieceForm extends JFrame {
 	}
 	
 	private PieceDTO getPieceDTO() {
-		return new PieceDTO(/* inputs */);
+		
+		return new PieceDTO(pieceDTO_list);
 	}
 	
 	private PieceCallback onProcessed() {

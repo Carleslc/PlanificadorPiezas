@@ -22,7 +22,7 @@ public class PieceController {
 	
 	/** Convert PieceDTO to Piece */
 	private Piece getPiece(PieceDTO dto) {
-		return new Piece("ID");
+		return new Piece("ID",dto.getPhases());
 	}
 	
 }
