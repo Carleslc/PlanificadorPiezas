@@ -35,7 +35,7 @@ class PieceProcessor {
 	
 	private void compute() throws ClassNotFoundException, SQLException {
 		// Simulation of heavy process
-		// TODO data.connect();
+		data.connect();
 		for (int i = 1; i <= 5; ++i) {
 			try { Thread.sleep(1000); } catch (Exception e) {}
 			System.out.println((int) (100 * i/5.0) + "%");
