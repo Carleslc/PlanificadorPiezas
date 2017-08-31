@@ -74,7 +74,7 @@ public class DataController {
 	}
 	
 	public void printAll() throws ClassNotFoundException, SQLException {
-		// System.out.println(Database.toString(database.query("SELECT * FROM piezas")));
+		System.out.println(Database.toString(database.query("SELECT * FROM piezas")));
 		System.out.println(String.join("\n", getAll().stream().map(OrderDTO::toString).collect(Collectors.toList())));
 	}
 	
