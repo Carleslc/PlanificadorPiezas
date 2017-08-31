@@ -1,4 +1,4 @@
-package com.nil.planificadorPiezas.utils;
+package com.nil.planificadorPiezas.data.utils;
 
 import java.time.Instant;
 import java.time.LocalDate;

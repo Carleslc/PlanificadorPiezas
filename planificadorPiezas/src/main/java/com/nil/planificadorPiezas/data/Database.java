@@ -11,7 +11,7 @@ import java.sql.SQLException;
  */
 abstract class Database {
 	
-	public static final int PRIMARY_KEY_ERROR_CODE = 1062;
+	private static final int PRIMARY_KEY_ERROR_CODE = 1062;
 	
 	private Connection connection;
 	
@@ -109,6 +109,10 @@ abstract class Database {
 		if (!isConnected()) {
 			connect();
 		}
+	}
+	
+	public static boolean isDuplication(Exception e) {
+		return e instanceof SQLException && ((SQLException) e).getErrorCode() == PRIMARY_KEY_ERROR_CODE;
 	}
 	
 	/**

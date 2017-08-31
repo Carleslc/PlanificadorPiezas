@@ -1,4 +1,4 @@
-package com.nil.planificadorPiezas.presentation.messages;
+package com.nil.planificadorPiezas.presentation.utils;
 
 import java.awt.Component;
 
@@ -6,7 +6,7 @@ import javax.swing.JOptionPane;
 
 public class WarningMessage extends Message {
 	
-	private static String  defaultTitle = "Advertencia";
+	private static String defaultTitle = "Advertencia";
 	
 	public WarningMessage(String message) {
 		this(message, defaultTitle);

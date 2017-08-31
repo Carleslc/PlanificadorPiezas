@@ -15,8 +15,8 @@ import java.util.stream.Collectors;
 
 import org.simpleyaml.exceptions.InvalidConfigurationException;
 
+import com.nil.planificadorPiezas.data.utils.DateUtils;
 import com.nil.planificadorPiezas.domain.OrderDTO;
-import com.nil.planificadorPiezas.utils.DateUtils;
 
 public class DataController {
 
@@ -29,6 +29,11 @@ public class DataController {
 	}
 	
 	public void save(OrderDTO order) throws ClassNotFoundException, SQLException {
+		if (exists(order.getId())) delete(order.getId());
+		insert(order);
+	}
+	
+	private void insert(OrderDTO order) throws ClassNotFoundException, SQLException {
 		PreparedStatement insert = database.preparedStatement("INSERT INTO piezas (id_pedido, id_fase, horas, fecha_inicio) VALUES (?, ?, ?, ?)");
 		insert.setString(1, order.getId());
 		insert.setDate(4, new Date(DateUtils.getEpochMillis(order.getStartDate())));
@@ -64,13 +69,21 @@ public class DataController {
 		return all;
 	}
 	
+	public boolean exists(String orderId) throws ClassNotFoundException, SQLException {
+		return database.query("SELECT * FROM piezas WHERE id_pedido = '" + orderId + "'").next();
+	}
+	
 	public void printAll() throws ClassNotFoundException, SQLException {
 		// System.out.println(Database.toString(database.query("SELECT * FROM piezas")));
 		System.out.println(String.join("\n", getAll().stream().map(OrderDTO::toString).collect(Collectors.toList())));
 	}
 	
 	public void deleteAll() throws ClassNotFoundException, SQLException {
-		database.update("DELETE FROM piezas");
+		delete(null);
+	}
+	
+	public void delete(String orderId) throws ClassNotFoundException, SQLException {
+		database.update("DELETE FROM piezas" + (orderId != null ? " WHERE id_pedido = '" + orderId + "'" : ""));
 	}
 	
 	public int getPhases() {

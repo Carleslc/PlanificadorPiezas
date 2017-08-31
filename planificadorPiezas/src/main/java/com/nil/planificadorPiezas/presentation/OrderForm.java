@@ -36,9 +36,10 @@ import com.nil.planificadorPiezas.domain.OrderCallback;
 import com.nil.planificadorPiezas.domain.OrderController;
 import com.nil.planificadorPiezas.domain.OrderDTO;
 import com.nil.planificadorPiezas.domain.Result;
-import com.nil.planificadorPiezas.presentation.messages.ErrorMessage;
-import com.nil.planificadorPiezas.presentation.messages.Message;
-import com.nil.planificadorPiezas.presentation.messages.WarningMessage;
+import com.nil.planificadorPiezas.presentation.utils.ErrorMessage;
+import com.nil.planificadorPiezas.presentation.utils.Message;
+import com.nil.planificadorPiezas.presentation.utils.OptionMessage;
+import com.nil.planificadorPiezas.presentation.utils.WarningMessage;
 
 public class OrderForm extends JFrame {
 
@@ -48,7 +49,7 @@ public class OrderForm extends JFrame {
 	private JPanel contentPane;
 	private boolean processing;
 	private JTextField identifier;
-	private Map<Integer, Double> phasesMap = new HashMap<Integer, Double>();
+	private Map<Integer, Double> phasesMap;
 	private List<JSpinner> phases = new ArrayList<>();
 	
 	private DateTimeFormatter dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG);
@@ -91,7 +92,7 @@ public class OrderForm extends JFrame {
 			@Override
 			public void windowClosing(WindowEvent e) {
 				if (processing) {
-					WarningMessage.show("Espera. Hay una pieza calculándose actualmente.");
+					WarningMessage.show("Espera. Hay un pedido calculándose actualmente.");
 				} else dispose();
 			}
 		});
@@ -146,16 +147,17 @@ public class OrderForm extends JFrame {
 	
 	private void processButtonClicked() {
 		if (processing) {
-			WarningMessage.show("Espera. Ya hay una pieza calculándose actualmente.");
+			WarningMessage.show("Espera. Ya hay un pedido calculándose actualmente.");
 			return;
 		}
 		
 		String id = identifier.getText().trim();
 		if (id.isEmpty()) {
-			WarningMessage.show("Debes especificar un identificador de pieza.");
+			WarningMessage.show("Debes especificar un identificador de pedido.");
 			return;
 		}
 		
+		phasesMap = new HashMap<>();
 		int totalHoras = 0;
 		for (int i = 1; i <= phases.size(); i++) {
 			int horas = (int) phases.get(i - 1).getValue();
@@ -169,6 +171,23 @@ public class OrderForm extends JFrame {
 		if (totalHoras == 0) {
 			WarningMessage.show("Debes especificar como mínimo 1 fase.");
 			return;
+		}
+		
+		try {
+			if (controller.exists(id)) {
+				OptionMessage
+					.build("El pedido con ID " + id + " ya existe. Quieres modificarlo con los valores introducidos?")
+					.title("Modificar Pedido")
+					.yes(() -> { })
+					.no(() -> { throw new RuntimeException("NO"); })
+					.useNoAsCancel()
+					.show();
+			}
+		} catch (RuntimeException e) {
+			if (e.getMessage().equals("NO")) return;
+			errorProcessing(e);
+		} catch (Exception e) {
+			errorProcessing(e);
 		}
 		
 		processing = true;
@@ -185,18 +204,22 @@ public class OrderForm extends JFrame {
 			
 			@Override
 			public void onProcessed(Result result) {
-				Message.show("La pieza con el identificador " + result.getId()
-					+ " estará lista para el día " + dateFormatter.format(result.getFinishDate()) + ".");
+				Message.show("El pedido con el identificador " + result.getId()
+					+ " estará listo para el día " + dateFormatter.format(result.getFinishDate()) + ".");
 				finishProcessing();
 			}
 			
 			@Override
 			public void onError(Exception e) {
-				ErrorMessage.show("Ha ocurrido un error al procesar la pieza.");
-				DumpError.dump(e);
+				errorProcessing(e);
 				finishProcessing();
 			}
 		};
+	}
+	
+	private void errorProcessing(Exception e) {
+		ErrorMessage.show("Ha ocurrido un error al procesar el pedido.");
+		DumpError.dump(e);
 	}
 	
 	private void finishProcessing() {

@@ -4,7 +4,7 @@ import java.awt.EventQueue;
 
 import com.nil.planificadorPiezas.domain.DumpError;
 import com.nil.planificadorPiezas.domain.OrderController;
-import com.nil.planificadorPiezas.presentation.messages.ErrorMessage;
+import com.nil.planificadorPiezas.presentation.utils.ErrorMessage;
 
 public class PlanificadorPiezas {
 

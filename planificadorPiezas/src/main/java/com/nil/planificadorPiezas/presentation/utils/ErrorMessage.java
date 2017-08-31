@@ -1,4 +1,4 @@
-package com.nil.planificadorPiezas.presentation.messages;
+package com.nil.planificadorPiezas.presentation.utils;
 
 import java.awt.Component;
 

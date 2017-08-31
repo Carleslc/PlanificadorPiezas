@@ -1,4 +1,4 @@
-package com.nil.planificadorPiezas.presentation.messages;
+package com.nil.planificadorPiezas.presentation.utils;
 
 import java.awt.Component;
 
@@ -8,9 +8,9 @@ public class Message {
 
 	private static String defaultTitle = "Información";
 	
-	private Component parentComponent;
-	private String message, title;
-	private int messageType;
+	protected Component parentComponent;
+	protected String message, title;
+	protected int messageType;
 	
 	public Message(String message) {
 		this(message, defaultTitle);
@@ -35,6 +35,30 @@ public class Message {
 		this.messageType = messageType;
 	}
 	
+	public Component getParentComponent() {
+		return parentComponent;
+	}
+
+	public void setParentComponent(Component parentComponent) {
+		this.parentComponent = parentComponent;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
 	public void show() {
 		JOptionPane.showMessageDialog(parentComponent, message, title, messageType);
 	}

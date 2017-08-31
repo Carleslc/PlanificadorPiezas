@@ -25,6 +25,10 @@ public class OrderController {
 		return new Order(dto);
 	}
 	
+	public boolean exists(String orderId) throws Exception {
+		return data.exists(orderId);
+	}
+	
 	public int getPhases() {
 		return data.getPhases();
 	}
