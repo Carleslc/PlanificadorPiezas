@@ -34,7 +34,7 @@ public class DataController {
 	}
 	
 	private void insert(OrderDTO order) throws ClassNotFoundException, SQLException {
-		PreparedStatement insert = database.preparedStatement("INSERT INTO piezas (id_pedido, id_fase, horas, fecha_inicio) VALUES (?, ?, ?, ?)");
+		PreparedStatement insert = database.preparedStatement("INSERT INTO pedidos (id_pedido, id_fase, horas, fecha_inicio) VALUES (?, ?, ?, ?)");
 		insert.setString(1, order.getId());
 		insert.setDate(4, new Date(DateUtils.getEpochMillis(order.getStartDate())));
 		Map<Integer, Double> phases = order.getPhases();
@@ -49,7 +49,7 @@ public class DataController {
 	
 	public List<OrderDTO> getAll() throws ClassNotFoundException, SQLException {
 		List<OrderDTO> all = new ArrayList<>();
-		ResultSet orders = database.query("SELECT id_pedido, id_fase, horas, fecha_inicio FROM piezas ORDER BY id_pedido");
+		ResultSet orders = database.query("SELECT id_pedido, id_fase, horas, fecha_inicio FROM pedidos ORDER BY id_pedido");
 		String lastOrderId = null;
 		LocalDate lastOrderStartDate = null;
 		Map<Integer, Double> phases = new HashMap<>();
@@ -70,11 +70,11 @@ public class DataController {
 	}
 	
 	public boolean exists(String orderId) throws ClassNotFoundException, SQLException {
-		return database.query("SELECT * FROM piezas WHERE id_pedido = '" + orderId + "'").next();
+		return database.query("SELECT * FROM pedidos WHERE id_pedido = '" + orderId + "'").next();
 	}
 	
 	public void printAll() throws ClassNotFoundException, SQLException {
-		System.out.println(Database.toString(database.query("SELECT * FROM piezas")));
+		System.out.println(Database.toString(database.query("SELECT * FROM pedidos")));
 		System.out.println(String.join("\n", getAll().stream().map(OrderDTO::toString).collect(Collectors.toList())));
 	}
 	
@@ -83,7 +83,7 @@ public class DataController {
 	}
 	
 	public void delete(String orderId) throws ClassNotFoundException, SQLException {
-		database.update("DELETE FROM piezas" + (orderId != null ? " WHERE id_pedido = '" + orderId + "'" : ""));
+		database.update("DELETE FROM pedidos" + (orderId != null ? " WHERE id_pedido = '" + orderId + "'" : ""));
 	}
 	
 	public int getPhases() {
