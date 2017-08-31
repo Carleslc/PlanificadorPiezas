@@ -1,6 +1,6 @@
 package com.nil.planificadorPiezas.domain;
 
-public interface PieceCallback {
+public interface OrderCallback {
 
 	void onProcessed(Result result);
 	

@@ -130,7 +130,7 @@ abstract class Database {
 
 			while (rs.next()) {
 				for (int i = 1; i <= columnCount; i++)
-					sb.append(rs.getString(i)).append(i < columnCount ? ", " : "");          
+					sb.append(rs.getString(i)).append(i < columnCount ? ",\t" : "");          
 				sb.append("\n");
 			}
 		} catch (Exception e) {

@@ -8,6 +8,9 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
@@ -20,40 +23,43 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
+import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.UIManager;
+import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 
 import com.nil.planificadorPiezas.domain.DumpError;
-import com.nil.planificadorPiezas.domain.PieceCallback;
-import com.nil.planificadorPiezas.domain.PieceController;
-import com.nil.planificadorPiezas.domain.PieceDTO;
+import com.nil.planificadorPiezas.domain.OrderCallback;
+import com.nil.planificadorPiezas.domain.OrderController;
+import com.nil.planificadorPiezas.domain.OrderDTO;
 import com.nil.planificadorPiezas.domain.Result;
 import com.nil.planificadorPiezas.presentation.messages.ErrorMessage;
 import com.nil.planificadorPiezas.presentation.messages.Message;
 import com.nil.planificadorPiezas.presentation.messages.WarningMessage;
 
-public class PieceForm extends JFrame {
+public class OrderForm extends JFrame {
 
 	private static final long serialVersionUID = -5045703627293054772L;
 	
-	private static final int NUM_PHASES = 10;
-	
-	private PieceController controller;
+	private OrderController controller;
 	private JPanel contentPane;
 	private boolean processing;
-	private Map<Integer, Double> pieceDTO_list = new HashMap<Integer, Double>();
+	private JTextField identifier;
+	private Map<Integer, Double> phasesMap = new HashMap<Integer, Double>();
 	private List<JSpinner> phases = new ArrayList<>();
 	
 	private DateTimeFormatter dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG);
 	
-	public PieceForm(PieceController controller) {
+	public OrderForm(OrderController controller) {
 		this.controller = controller;
 		processing = false;
 		
 		setStyle();
 		addContentPane();
+		addOrderIdentifier();
 		addPhases();
 		addProcessButton();
 		setWindowSettings();
@@ -71,20 +77,37 @@ public class PieceForm extends JFrame {
 		setTitle("Planificador de Piezas");
 		setIconImage(Icons.MAIN);
 		setResizable(true);
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				if (processing) {
+					WarningMessage.show("Espera. Hay una pieza calculándose actualmente.");
+				} else dispose();
+			}
+		});
 	}
 	
 	private void addContentPane() {
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.PAGE_AXIS));
+		JScrollPane scroll = new JScrollPane(contentPane);
+		contentPane.setAutoscrolls(true);
+		add(scroll);
 		setContentPane(contentPane);
 	}
 	
+	private void addOrderIdentifier() {
+		JPanel topPanel = newInnerPanel();
+		identifier = new JTextField(5);
+		topPanel.add(new JLabel("ID Pedido"));
+		topPanel.add(identifier);
+		contentPane.add(topPanel);
+	}
+	
 	private void addPhases() {
-		for (int i = 1; i <= NUM_PHASES; i++) {
-			JPanel phasePanel = new JPanel();
-			phasePanel.setBorder(new EmptyBorder(2, 2, 2, 2));
-			phasePanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+		for (int i = 1; i <= controller.getPhases(); i++) {
+			JPanel phasePanel = newInnerPanel();
 			addPhaseInput(phasePanel);
 			addPhaseLabel(i, phasePanel);
 			contentPane.add(phasePanel);
@@ -99,7 +122,7 @@ public class PieceForm extends JFrame {
 				processButtonClicked();
 			}
 		});
-		JPanel bottomPanel = new JPanel();
+		JPanel bottomPanel = newInnerPanel();
 		bottomPanel.add(processButton);
 		contentPane.add(bottomPanel);
 	}
@@ -120,12 +143,20 @@ public class PieceForm extends JFrame {
 			return;
 		}
 		
+		String id = identifier.getText().trim();
+		if (id.isEmpty()) {
+			WarningMessage.show("Debes especificar un identificador de pieza.");
+			return;
+		}
+		
 		int totalHoras = 0;
-		for (int i = 0; i < phases.size(); i++) {
-			int horas = (int) phases.get(i).getValue();
+		for (int i = 1; i <= phases.size(); i++) {
+			int horas = (int) phases.get(i - 1).getValue();
 			totalHoras += horas;
-			pieceDTO_list.put(i,(double) horas);
-			System.out.println("Horas en la fase " + i + " : " + horas + " h");
+			if (horas != 0) {
+				phasesMap.put(i, (double) horas);
+				System.out.println("Horas en la fase " + i + " : " + horas + " h");
+			}
 		}
 		
 		if (totalHoras == 0) {
@@ -134,31 +165,49 @@ public class PieceForm extends JFrame {
 		}
 		
 		processing = true;
-		controller.process(getPieceDTO(), onProcessed());
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		controller.process(getOrderDTO(id), onProcessed());
 	}
 	
-	private PieceDTO getPieceDTO() {
-		
-		return new PieceDTO(pieceDTO_list);
+	private OrderDTO getOrderDTO(String id) {
+		return new OrderDTO(id, phasesMap, LocalDate.now());
 	}
 	
-	private PieceCallback onProcessed() {
-		return new PieceCallback() {
+	private OrderCallback onProcessed() {
+		return new OrderCallback() {
 			
 			@Override
 			public void onProcessed(Result result) {
 				Message.show("La pieza con el identificador " + result.getId()
 					+ " estará lista para el día " + dateFormatter.format(result.getFinishDate()) + ".");
-				processing = false;
+				finishProcessing();
 			}
 			
 			@Override
 			public void onError(Exception e) {
 				ErrorMessage.show("Ha ocurrido un error al procesar la pieza.");
 				DumpError.dump(e);
-				processing = false;
+				finishProcessing();
 			}
 		};
+	}
+	
+	private void finishProcessing() {
+		processing = false;
+		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+	}
+	
+	@Override
+	public void dispose() {
+		super.dispose();
+		System.exit(0);
+	}
+	
+	private static JPanel newInnerPanel() {
+		JPanel panel = new JPanel();
+		panel.setBorder(new EmptyBorder(2, 2, 2, 2));
+		panel.setLayout(new FlowLayout(FlowLayout.CENTER));
+		return panel;
 	}
 	
 	private static void setStyle() {
