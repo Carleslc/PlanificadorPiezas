@@ -70,13 +70,23 @@ public class OrderForm extends JFrame {
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 	    GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
 	    Rectangle rect = defaultScreen.getDefaultConfiguration().getBounds();
+	    final int MARGIN_Y = 100;
+	    final int PADDING_X = 50;
 	    int x = (int) (rect.getMaxX() - getWidth())/2;
-	    int y = (int) (rect.getMaxY() - getHeight())/2;
+	    int y = (int) ((rect.getMaxY() - MARGIN_Y) - getHeight())/2;
 	    setLocation(x, y);
-		setMinimumSize(new Dimension(getWidth(), getHeight()));
+	    int width = (int) Math.min(getWidth() + PADDING_X, rect.getMaxX());
+	    int height = (int) Math.min(getHeight() + 10, rect.getMaxY() - MARGIN_Y);
+	    Dimension size = new Dimension(width, height);
+		setMinimumSize(size);
+		setPreferredSize(size);
 		setTitle("Planificador de Piezas");
 		setIconImage(Icons.MAIN);
 		setResizable(true);
+		JScrollPane scroll = new JScrollPane(contentPane);
+		contentPane.setAutoscrolls(true);
+		scroll.setViewportView(contentPane);
+		setContentPane(scroll);
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
@@ -91,9 +101,6 @@ public class OrderForm extends JFrame {
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.PAGE_AXIS));
-		JScrollPane scroll = new JScrollPane(contentPane);
-		contentPane.setAutoscrolls(true);
-		add(scroll);
 		setContentPane(contentPane);
 	}
 	
