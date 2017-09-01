@@ -1,4 +1,3 @@
-database: "/Users/carleslc/GitHub/PlanificadorPiezas/planificadorPiezas/planificador_piezas.accdb"
 fases: 10
 trabajadores: 10
 horas_diarias: 8

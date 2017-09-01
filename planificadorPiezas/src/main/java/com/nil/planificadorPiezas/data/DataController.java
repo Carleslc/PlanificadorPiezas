@@ -1,5 +1,6 @@
 package com.nil.planificadorPiezas.data;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -15,17 +16,32 @@ import java.util.stream.Collectors;
 
 import org.simpleyaml.exceptions.InvalidConfigurationException;
 
+import com.healthmarketscience.jackcess.Database.FileFormat;
+import com.healthmarketscience.jackcess.DatabaseBuilder;
 import com.nil.planificadorPiezas.data.utils.DateUtils;
 import com.nil.planificadorPiezas.domain.OrderDTO;
 
 public class DataController {
 
+	private final String DATABASE_PATH = System.getProperty("user.dir") + "/pedidos.accdb";
+	
 	private Config config;
 	private Database database;
 	
-	public DataController() throws IOException, InvalidConfigurationException {
+	public DataController() throws IOException, InvalidConfigurationException, ClassNotFoundException, SQLException {
 		config = new Config("config.yml");
-		database = new AccessDatabase(config.getDatabaseLocation());
+		boolean exists = checkDatabase();
+		database = new AccessDatabase(DATABASE_PATH);
+		if (!exists) database.update("CREATE TABLE pedidos (id_pedido TEXT NOT NULL, id_fase INTEGER NOT NULL, horas DOUBLE NOT NULL, fecha_inicio DATE NOT NULL, PRIMARY KEY (id_pedido, id_fase))");
+	}
+	
+	private boolean checkDatabase() throws IOException {
+		File dbFile = new File(DATABASE_PATH);
+		if (!dbFile.exists()) {
+			DatabaseBuilder.create(FileFormat.V2010, dbFile);
+			return false;
+		}
+		return true;
 	}
 	
 	public void save(OrderDTO order) throws ClassNotFoundException, SQLException {
@@ -69,12 +85,21 @@ public class DataController {
 		return all;
 	}
 	
+	public OrderDTO get(String orderId) throws ClassNotFoundException, SQLException {
+		ResultSet order = database.query("SELECT id_fase, horas, fecha_inicio FROM pedidos WHERE id_pedido = '" + orderId + "'");
+		order.next(); // Throws exception if not exists
+		Map<Integer, Double> phases = new HashMap<>();
+		LocalDate startDate = DateUtils.getLocalDate(order.getDate(3).getTime());
+		do { phases.put(order.getInt(1), order.getDouble(2)); } while (order.next());
+		return new OrderDTO(orderId, phases, startDate);
+	}
+	
 	public boolean exists(String orderId) throws ClassNotFoundException, SQLException {
 		return database.query("SELECT * FROM pedidos WHERE id_pedido = '" + orderId + "'").next();
 	}
 	
 	public void printAll() throws ClassNotFoundException, SQLException {
-		System.out.println(Database.toString(database.query("SELECT * FROM pedidos")));
+		//System.out.println(Database.toString(database.query("SELECT * FROM pedidos")));
 		System.out.println(String.join("\n", getAll().stream().map(OrderDTO::toString).collect(Collectors.toList())));
 	}
 	

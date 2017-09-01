@@ -5,10 +5,10 @@ class Phase {
 	private int id;
 	private int hours, minutes;
 	
-	Phase(int id, double hoursRaw) {
+	Phase(int id, double rawHours) {
 		this.id = id;
-		hours = (int) hoursRaw;
-		minutes = (int) (hoursRaw - hours)*60;
+		hours = (int) rawHours;
+		minutes = (int) (rawHours - hours)*60;
 	}
 	
 	int getHours() {

@@ -1,7 +1,6 @@
 package com.nil.planificadorPiezas.domain;
 
 import java.sql.SQLException;
-import java.time.LocalDate;
 
 import com.nil.planificadorPiezas.data.DataController;
 
@@ -38,7 +37,7 @@ class OrderProcessor {
 		data.printAll();
 		
 		// Set the result
-		result = new Result(order.getId(), LocalDate.now());
+		result = new Result(order.getId(), order.getStartDate());
 	}
 	
 }

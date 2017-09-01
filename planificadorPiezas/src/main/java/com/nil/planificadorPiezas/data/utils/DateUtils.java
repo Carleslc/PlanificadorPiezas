@@ -3,6 +3,7 @@ package com.nil.planificadorPiezas.data.utils;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Date;
 
 public abstract class DateUtils {
 
@@ -12,6 +13,14 @@ public abstract class DateUtils {
 	
 	public static LocalDate getLocalDate(long epochMillis) {
 		return Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault()).toLocalDate();
+	}
+	
+	public static LocalDate getLocalDate(Date date) {
+		return getLocalDate(date.getTime());
+	}
+	
+	public static Date getDate(LocalDate date) {
+		return new Date(getEpochMillis(date));
 	}
 	
 }

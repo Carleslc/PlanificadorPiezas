@@ -8,7 +8,6 @@ import org.simpleyaml.file.YamlFile;
 class Config {
 
 	private YamlFile config;
-	private String databaseLocation;
 	private int phases, workers, dailyHours;
 	
 	Config(String path) throws IOException, InvalidConfigurationException {
@@ -20,16 +19,11 @@ class Config {
 		if (config.exists()) config.load();
 		else config.createNewFile(true);
 		
-		databaseLocation = config.getString("database");
 		phases = config.getInt("fases");
 		workers = config.getInt("trabajadores");
 		dailyHours = config.getInt("horas_diarias");
 	}
 	
-	String getDatabaseLocation() {
-		return databaseLocation;
-	}
-
 	int getPhases() {
 		return phases;
 	}

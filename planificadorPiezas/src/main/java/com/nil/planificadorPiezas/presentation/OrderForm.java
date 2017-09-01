@@ -14,9 +14,12 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -26,17 +29,19 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
-import javax.swing.SpinnerNumberModel;
+import javax.swing.SpinnerDateModel;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 
+import com.nil.planificadorPiezas.data.utils.DateUtils;
 import com.nil.planificadorPiezas.domain.DumpError;
 import com.nil.planificadorPiezas.domain.OrderCallback;
 import com.nil.planificadorPiezas.domain.OrderController;
 import com.nil.planificadorPiezas.domain.OrderDTO;
 import com.nil.planificadorPiezas.domain.Result;
 import com.nil.planificadorPiezas.presentation.utils.ErrorMessage;
+import com.nil.planificadorPiezas.presentation.utils.Icons;
 import com.nil.planificadorPiezas.presentation.utils.Message;
 import com.nil.planificadorPiezas.presentation.utils.OptionMessage;
 import com.nil.planificadorPiezas.presentation.utils.WarningMessage;
@@ -49,8 +54,9 @@ public class OrderForm extends JFrame {
 	private JPanel contentPane;
 	private boolean processing;
 	private JTextField identifier;
+	private JSpinner startDate;
 	private Map<Integer, Double> phasesMap;
-	private List<JSpinner> phases = new ArrayList<>();
+	private List<PhaseInput> phases = new ArrayList<>();
 	
 	private DateTimeFormatter dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG);
 	
@@ -61,7 +67,9 @@ public class OrderForm extends JFrame {
 		setStyle();
 		addContentPane();
 		addOrderIdentifier();
+		addEditButtons();
 		addPhases();
+		addStartDate();
 		addProcessButton();
 		setWindowSettings();
 	}
@@ -92,7 +100,7 @@ public class OrderForm extends JFrame {
 			@Override
 			public void windowClosing(WindowEvent e) {
 				if (processing) {
-					WarningMessage.show("Espera. Hay un pedido calculándose actualmente.");
+					WarningMessage.show("Espera. Hay un pedido procesándose actualmente.");
 				} else dispose();
 			}
 		});
@@ -100,75 +108,115 @@ public class OrderForm extends JFrame {
 	
 	private void addContentPane() {
 		contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.PAGE_AXIS));
 		setContentPane(contentPane);
 	}
 	
 	private void addOrderIdentifier() {
 		JPanel topPanel = newInnerPanel();
-		identifier = new JTextField(5);
 		topPanel.add(new JLabel("ID Pedido"));
+		identifier = new JTextField(6);
 		topPanel.add(identifier);
 		contentPane.add(topPanel);
 	}
 	
+	private void addEditButtons() {
+		JPanel editPanel = newInnerPanel();
+		JButton loadButton = new JButton("Cargar");
+		loadButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				loadButtonClicked();
+			}
+		});
+		editPanel.add(loadButton);
+		JButton deleteButton = new JButton("Eliminar");
+		deleteButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				deleteButtonClicked();
+			}
+		});
+		editPanel.add(deleteButton);
+		contentPane.add(editPanel);
+	}
+	
 	private void addPhases() {
 		for (int i = 1; i <= controller.getPhases(); i++) {
-			JPanel phasePanel = newInnerPanel();
-			addPhaseInput(phasePanel);
-			addPhaseLabel(i, phasePanel);
-			contentPane.add(phasePanel);
+			PhaseInput phase = new PhaseInput(i);
+			phases.add(phase);
+			contentPane.add(phase);
 		}
 	}
 	
 	private void addProcessButton() {
-		JButton processButton = new JButton("Procesar");
+		JPanel bottomPanel = newInnerPanel();
+		JButton processButton = new JButton("Añadir / Modificar");
 		processButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				processButtonClicked();
+				addButtonClicked();
 			}
 		});
-		JPanel bottomPanel = newInnerPanel();
 		bottomPanel.add(processButton);
+		JButton clearButton = new JButton("Restablecer");
+		clearButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				clear();
+			}
+		});
+		bottomPanel.add(clearButton);
 		contentPane.add(bottomPanel);
 	}
 	
-	private void addPhaseInput(JPanel to) {
-		JSpinner phaseSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 365, 1));
-		to.add(phaseSpinner);
-		phases.add(phaseSpinner);
+	private void addStartDate() {
+		JPanel datePanel = newInnerPanel();
+		datePanel.add(new JLabel("Fecha de inicio"));
+		LocalDate localNow = LocalDate.now();
+		Date now = DateUtils.getDate(localNow);
+		Date max = DateUtils.getDate(localNow.plusYears(100));
+		startDate = new JSpinner(new SpinnerDateModel(now, now, max, Calendar.DAY_OF_MONTH));
+		startDate.setEditor(new JSpinner.DateEditor(startDate, "dd/MM/yyyy"));
+		((JSpinner.DefaultEditor) startDate.getEditor()).getTextField().setColumns(7);
+		datePanel.add(startDate);
+		contentPane.add(datePanel);
 	}
 	
-	private void addPhaseLabel(int num, JPanel to) {
-		to.add(new JLabel("Horas fase " + num));
+	private void clear() {
+		phases.forEach(PhaseInput::clear);
+		startDate.setValue(((SpinnerDateModel)startDate.getModel()).getStart());
 	}
 	
-	private void processButtonClicked() {
+	private boolean checkOrder(String id) {
 		if (processing) {
-			WarningMessage.show("Espera. Ya hay un pedido calculándose actualmente.");
-			return;
+			WarningMessage.show("Espera. Ya hay un pedido procesándose actualmente.");
+			return true;
 		}
-		
-		String id = identifier.getText().trim();
 		if (id.isEmpty()) {
 			WarningMessage.show("Debes especificar un identificador de pedido.");
-			return;
+			return true;
 		}
+		return false;
+	}
+	
+	private void addButtonClicked() {
+		String id = identifier.getText().trim();
+		if (checkOrder(id)) return;
 		
 		phasesMap = new HashMap<>();
-		int totalHoras = 0;
+		double totalHours = 0D;
 		for (int i = 1; i <= phases.size(); i++) {
-			int horas = (int) phases.get(i - 1).getValue();
-			totalHoras += horas;
-			if (horas != 0) {
-				phasesMap.put(i, (double) horas);
-				System.out.println("Horas en la fase " + i + " : " + horas + " h");
+			PhaseInput phase = phases.get(i - 1);
+			double hours = phase.getRawHours();
+			totalHours += hours;
+			if (hours != 0D) {
+				phasesMap.put(i, hours);
+				System.out.println("Fase " + i + " : " + phase.getHours() + "h " + phase.getMinutes() + "m");
 			}
 		}
 		
-		if (totalHoras == 0) {
+		if (totalHours == 0D) {
 			WarningMessage.show("Debes especificar como mínimo 1 fase.");
 			return;
 		}
@@ -176,9 +224,8 @@ public class OrderForm extends JFrame {
 		try {
 			if (controller.exists(id)) {
 				OptionMessage
-					.build("El pedido con ID " + id + " ya existe. Quieres modificarlo con los valores introducidos?")
+					.build("El pedido con identificador " + id + " ya existe. ¿Quieres modificarlo con los valores introducidos?")
 					.title("Modificar Pedido")
-					.yes(() -> { })
 					.no(() -> { throw new RuntimeException("NO"); })
 					.useNoAsCancel()
 					.show();
@@ -190,13 +237,62 @@ public class OrderForm extends JFrame {
 			errorProcessing(e);
 		}
 		
-		processing = true;
-		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		startProcessing();
 		controller.process(getOrderDTO(id), onProcessed());
 	}
 	
+	private void loadButtonClicked() {
+		String id = identifier.getText().trim();
+		if (checkOrder(id)) return;
+		try {
+			if (controller.exists(id)) {
+				OrderDTO order = controller.getOrder(id);
+				clear();
+				for (Entry<Integer, Double> phase : order.getPhases().entrySet()) {
+					phases.get(phase.getKey() - 1).setRawHours(phase.getValue());
+				}
+				startDate.setValue(DateUtils.getDate(order.getStartDate()));
+				Message.show("Se ha autorellenado el pedido con identificador " + id + ".");
+			} else notExists(id);
+		} catch (Exception e) {
+			errorProcessing(e);
+		}
+	}
+	
+	private void deleteButtonClicked() {
+		String id = identifier.getText().trim();
+		if (checkOrder(id)) return;
+		try {
+			if (controller.exists(id)) {
+				OptionMessage
+					.build("¿Estás seguro de eliminar el pedido con identificador " + id + "?")
+					.title("Eliminar Pedido")
+					.yes(() -> {
+						try {
+							controller.deleteOrder(id);
+							Message.show("El pedido con identificador " + id + " ha sido eliminado.");
+						} catch (Exception e) {
+							throw new RuntimeException(e);
+						}
+					})
+					.no(() -> { throw new RuntimeException("NO"); })
+					.useNoAsCancel()
+					.show();
+			} else notExists(id);
+		} catch (RuntimeException e) {
+			if (e.getMessage().equals("NO")) return;
+			errorProcessing(e);
+		} catch (Exception e) {
+			errorProcessing(e);
+		}
+	}
+	
+	private void notExists(String id) {
+		WarningMessage.show("El pedido con identificador " + id + " no existe.");
+	}
+	
 	private OrderDTO getOrderDTO(String id) {
-		return new OrderDTO(id, phasesMap, LocalDate.now());
+		return new OrderDTO(id, phasesMap, DateUtils.getLocalDate((Date) startDate.getValue()));
 	}
 	
 	private OrderCallback onProcessed() {
@@ -204,7 +300,7 @@ public class OrderForm extends JFrame {
 			
 			@Override
 			public void onProcessed(Result result) {
-				Message.show("El pedido con el identificador " + result.getId()
+				Message.show("El pedido con identificador " + result.getId()
 					+ " estará listo para el día " + dateFormatter.format(result.getFinishDate()) + ".");
 				finishProcessing();
 			}
@@ -212,14 +308,19 @@ public class OrderForm extends JFrame {
 			@Override
 			public void onError(Exception e) {
 				errorProcessing(e);
-				finishProcessing();
 			}
 		};
 	}
 	
 	private void errorProcessing(Exception e) {
+		finishProcessing();
 		ErrorMessage.show("Ha ocurrido un error al procesar el pedido.");
 		DumpError.dump(e);
+	}
+	
+	private void startProcessing() {
+		processing = true;
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 	}
 	
 	private void finishProcessing() {

@@ -1,4 +1,4 @@
-package com.nil.planificadorPiezas.presentation;
+package com.nil.planificadorPiezas.presentation.utils;
 
 import java.awt.Image;
 import java.awt.Toolkit;
