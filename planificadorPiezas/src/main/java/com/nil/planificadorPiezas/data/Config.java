@@ -11,14 +11,13 @@ class Config {
 	private int phases, workers, dailyHours;
 	
 	Config(String path) throws IOException, InvalidConfigurationException {
-		load(path);
-	}
-	
-	void load(String path) throws IOException, InvalidConfigurationException {
 		config = new YamlFile(path);
 		if (config.exists()) config.load();
 		else config.createNewFile(true);
-		
+		load();
+	}
+	
+	void load() {
 		phases = config.getInt("fases");
 		workers = config.getInt("trabajadores");
 		dailyHours = config.getInt("horas_diarias");

@@ -1,32 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.nil</groupId>
-  <artifactId>planificadorPiezas</artifactId>
-  <version>0.1-SNAPSHOT</version>
-  <packaging>jar</packaging>
+	<groupId>com.nil</groupId>
+	<artifactId>planificadorPiezas</artifactId>
+	<version>1.0-SNAPSHOT</version>
+	<packaging>jar</packaging>
 
-  <name>planificadorPiezas</name>
+	<name>planificadorPiezas</name>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
+	<properties>
+		<main.class>com.nil.planificadorPiezas.presentation.PlanificadorPiezas</main.class>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+	</properties>
 
-  <dependencies>
-  	<!-- Access DB -->
-    <dependency>
-    	<groupId>net.sf.ucanaccess</groupId>
-    	<artifactId>ucanaccess</artifactId>
-    	<version>4.0.2</version>
-    </dependency>
-    <!-- YAML Configuration -->
-    <dependency>
-        <groupId>org.simpleyaml</groupId>
-        <artifactId>simpleyaml</artifactId>
-        <version>1.0</version>
-        <scope>system</scope>
-        <systemPath>${project.basedir}/simpleyaml-1.0.jar</systemPath>
-    </dependency>
-  </dependencies>
+	<repositories>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<!-- Access DB -->
+		<dependency>
+			<groupId>net.sf.ucanaccess</groupId>
+			<artifactId>ucanaccess</artifactId>
+			<version>4.0.2</version>
+		</dependency>
+		<!-- YAML Configuration -->
+		<dependency>
+			<groupId>org.simpleyaml</groupId>
+			<artifactId>simpleyaml</artifactId>
+			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/simpleyaml-1.0.jar</systemPath>
+		</dependency>
+		<!-- Serial Number -->
+		<dependency>
+			<groupId>com.github.Carleslc</groupId>
+			<artifactId>SerialNumber</artifactId>
+			<version>1.1</version>
+		</dependency>
+		<!-- Gson -->
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.8.1</version>
+		</dependency>
+	</dependencies>
+
+	<!-- Self contained JAR -->
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<mainClass>${main.class}</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>2.4.3</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<dependencyReducedPomLocation>${project.build.directory}/dependency-reduced-pom.xml</dependencyReducedPomLocation>
+							<shadedArtifactAttached>false</shadedArtifactAttached>
+							<outputDirectory>${java.io.tmpdir}/libs</outputDirectory>
+							<minimizeJar>true</minimizeJar>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
 </project>

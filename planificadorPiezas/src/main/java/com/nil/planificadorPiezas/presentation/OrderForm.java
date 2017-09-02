@@ -1,11 +1,5 @@
 package com.nil.planificadorPiezas.presentation;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -30,9 +24,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
-import javax.swing.UIManager;
 import javax.swing.WindowConstants;
-import javax.swing.border.EmptyBorder;
 
 import com.nil.planificadorPiezas.data.utils.DateUtils;
 import com.nil.planificadorPiezas.domain.DumpError;
@@ -40,10 +32,12 @@ import com.nil.planificadorPiezas.domain.OrderCallback;
 import com.nil.planificadorPiezas.domain.OrderController;
 import com.nil.planificadorPiezas.domain.OrderDTO;
 import com.nil.planificadorPiezas.domain.Result;
+import com.nil.planificadorPiezas.presentation.utils.CenterFrame;
 import com.nil.planificadorPiezas.presentation.utils.ErrorMessage;
 import com.nil.planificadorPiezas.presentation.utils.Icons;
 import com.nil.planificadorPiezas.presentation.utils.Message;
 import com.nil.planificadorPiezas.presentation.utils.OptionMessage;
+import com.nil.planificadorPiezas.presentation.utils.PanelFactory;
 import com.nil.planificadorPiezas.presentation.utils.WarningMessage;
 
 public class OrderForm extends JFrame {
@@ -64,7 +58,6 @@ public class OrderForm extends JFrame {
 		this.controller = controller;
 		processing = false;
 		
-		setStyle();
 		addContentPane();
 		addOrderIdentifier();
 		addEditButtons();
@@ -75,20 +68,7 @@ public class OrderForm extends JFrame {
 	}
 	
 	private void setWindowSettings() {
-		pack();
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-	    GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
-	    Rectangle rect = defaultScreen.getDefaultConfiguration().getBounds();
-	    final int MARGIN_Y = 100;
-	    final int PADDING_X = 50;
-	    int x = (int) (rect.getMaxX() - getWidth())/2;
-	    int y = (int) ((rect.getMaxY() - MARGIN_Y) - getHeight())/2;
-	    setLocation(x, y);
-	    int width = (int) Math.min(getWidth() + PADDING_X, rect.getMaxX());
-	    int height = (int) Math.min(getHeight() + 10, rect.getMaxY() - MARGIN_Y);
-	    Dimension size = new Dimension(width, height);
-		setMinimumSize(size);
-		setPreferredSize(size);
+		CenterFrame.center(this, 0, 100, 50, 10);
 		setTitle("Planificador de Piezas");
 		setIconImage(Icons.MAIN);
 		setResizable(true);
@@ -113,7 +93,7 @@ public class OrderForm extends JFrame {
 	}
 	
 	private void addOrderIdentifier() {
-		JPanel topPanel = newInnerPanel();
+		JPanel topPanel = PanelFactory.newInnerPanel();
 		topPanel.add(new JLabel("ID Pedido"));
 		identifier = new JTextField(6);
 		topPanel.add(identifier);
@@ -121,7 +101,7 @@ public class OrderForm extends JFrame {
 	}
 	
 	private void addEditButtons() {
-		JPanel editPanel = newInnerPanel();
+		JPanel editPanel = PanelFactory.newInnerPanel();
 		JButton loadButton = new JButton("Cargar");
 		loadButton.addMouseListener(new MouseAdapter() {
 			@Override
@@ -150,7 +130,7 @@ public class OrderForm extends JFrame {
 	}
 	
 	private void addProcessButton() {
-		JPanel bottomPanel = newInnerPanel();
+		JPanel bottomPanel = PanelFactory.newInnerPanel();
 		JButton processButton = new JButton("Añadir / Modificar");
 		processButton.addMouseListener(new MouseAdapter() {
 			@Override
@@ -171,7 +151,7 @@ public class OrderForm extends JFrame {
 	}
 	
 	private void addStartDate() {
-		JPanel datePanel = newInnerPanel();
+		JPanel datePanel = PanelFactory.newInnerPanel();
 		datePanel.add(new JLabel("Fecha de inicio"));
 		LocalDate localNow = LocalDate.now();
 		Date now = DateUtils.getDate(localNow);
@@ -332,31 +312,6 @@ public class OrderForm extends JFrame {
 	public void dispose() {
 		super.dispose();
 		System.exit(0);
-	}
-	
-	private static JPanel newInnerPanel() {
-		JPanel panel = new JPanel();
-		panel.setBorder(new EmptyBorder(2, 2, 2, 2));
-		panel.setLayout(new FlowLayout(FlowLayout.CENTER));
-		return panel;
-	}
-	
-	private static void setStyle() {
-		try {
-			// Nimbus L&F style
-			UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
-			// Base Background
-			UIManager.put("control", Color.getHSBColor(200/360f, 0.05f, 1f));
-			// ToolTip Background
-			UIManager.put("info", Color.getHSBColor(185/360f, 0.15f, 0.97f));
-			// Buttons Background
-			UIManager.put("nimbusBase", Color.getHSBColor(200/360f, 0.15f, 0.65f));
-			// ComboBox Highlight Background
-			UIManager.put("ComboBox:\"ComboBox.listRenderer\"[Selected].background", Color.LIGHT_GRAY);
-			// Default colors
-			UIManager.getLookAndFeelDefaults().put("nimbusOrange", UIManager.getColor("nimbusBase"));
-			UIManager.getLookAndFeelDefaults().put("nimbusGreen", Color.getHSBColor(100/360f, 0.65f, 0.85f));
-		} catch (Exception notFoundThenUseDefault) {}
 	}
 
 }
