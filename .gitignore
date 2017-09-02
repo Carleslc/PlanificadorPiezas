@@ -6,6 +6,7 @@
 
 # Log file
 *.log
+.license
 
 # BlueJ files
 *.ctxt
