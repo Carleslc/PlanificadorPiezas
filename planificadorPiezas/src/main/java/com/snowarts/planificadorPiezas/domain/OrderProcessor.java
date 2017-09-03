@@ -2,7 +2,6 @@ package com.snowarts.planificadorPiezas.domain;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -44,7 +43,7 @@ class OrderProcessor {
 	private void compute() throws ClassNotFoundException, SQLException {
 		data.save(order.toDTO());
 		List<OrderDTO> dtos = data.getAll();
-		debug(dtos);
+		//debug(dtos);
 		Stream<Order> orders = dtos.stream().map(dto -> new Order(dto)).sorted();
 		LinkedList<Phase> remaining = orders.flatMap(o -> o.getPhases().stream()).collect(Collectors.toCollection(LinkedList::new));
 		Map<Order, LocalDateTime> results = new HashMap<>();
@@ -61,12 +60,12 @@ class OrderProcessor {
 			}
 		}
 		
-		System.out.println(scheduler);
+		//System.out.println(scheduler);
 		result = new Result(order.getId(), results.get(order).toLocalDate());
 	}
 	
-	private <T> void debug(Collection<T> s) {
+	/*private <T> void debug(Collection<T> s) {
 		System.out.println(String.join("\n", s.stream().map(T::toString).collect(Collectors.toList())) + "\n");
-	}
+	}*/
 	
 }

@@ -11,7 +11,8 @@ class Scheduler {
 	
 	private final int workers;
 	private final LocalTime dayOpening, dayClosing;
-	private ArrayList<LinkedList<WorkDay>> phases;
+	private ArrayList<LinkedList<ScheduledPhase>> phases;
+	private WorkDay currentDay;
 	
 	Scheduler(int numPhases, int workers, LocalTime dayOpening, LocalTime dayClosing) {
 		this.workers = workers;
@@ -26,9 +27,8 @@ class Scheduler {
 	}
 	
 	LocalDateTime add(Phase phase, ListIterator<Phase> remaining) {
-		LinkedList<WorkDay> phaseQueue = phases.get(phase.getId() - 1);
-		if (phaseQueue.isEmpty()) phaseQueue.add(newWorkDay(phase.getId(), phase.getRelated().getStartDate()));
-		WorkDay currentDay = phaseQueue.getLast();
+		LinkedList<ScheduledPhase> phaseQueue = phases.get(phase.getId() - 1);
+		if (currentDay == null) currentDay = newWorkDay(phase.getRelated().getStartDate());
 		LocalDateTime start = currentDay.getCurrentTime();
 		int remainingMinutes = currentDay.getRemainingMinutes();
 		int remainingMinutesPerWorker = (int) Math.ceil(((double) remainingMinutes)/workers);
@@ -48,13 +48,14 @@ class Scheduler {
 			remaining.add(second);
 			remaining.previous();
 		}
+		phaseQueue.add(scheduled);
 		currentDay.add(scheduled);
-		if (currentDay.isFinished()) phaseQueue.add(newWorkDay(phase.getId(), currentDay.getOpen().plusDays(1).toLocalDate()));
+		if (currentDay.isFinished()) currentDay = newWorkDay(currentDay.getOpen().plusDays(1).toLocalDate());
 		return scheduled.getScheduledFinishDate();
 	}
 	
-	WorkDay newWorkDay(int phaseId, LocalDate day) {
-		return new WorkDay(phaseId, day.atTime(dayOpening), day.atTime(dayClosing), workers);
+	WorkDay newWorkDay(LocalDate day) {
+		return new WorkDay(day.atTime(dayOpening), day.atTime(dayClosing), workers);
 	}
 	
 	@Override
