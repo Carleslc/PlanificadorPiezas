@@ -2,6 +2,7 @@ package com.snowarts.planificadorPiezas.data.utils;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -25,8 +26,12 @@ public abstract class DateUtils {
 		return new Date(getEpochMillis(date));
 	}
 	
-	public static String format(LocalDate date) {
-		return date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG));
+	public static String format(LocalDate date, FormatStyle style) {
+		return date.format(DateTimeFormatter.ofLocalizedDate(style));
+	}
+	
+	public static String format(LocalDateTime date, FormatStyle style) {
+		return date.format(DateTimeFormatter.ofLocalizedDateTime(style));
 	}
 	
 }

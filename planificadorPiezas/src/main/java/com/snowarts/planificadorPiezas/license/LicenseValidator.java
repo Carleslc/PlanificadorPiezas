@@ -9,6 +9,7 @@ import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
+import java.time.format.FormatStyle;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 
@@ -89,7 +90,7 @@ public final class LicenseValidator {
 			String[] options = { "Introducir nueva licencia", "Continuar con la licencia actual" };
 			JPanel panel = PanelFactory.newPanel();
 			JLabel warning = new JLabel("Tu licencia caducará en " + now.until(expiration, ChronoUnit.DAYS) +
-					" días (" + DateUtils.format(expiration) + ").");
+					" días (" + DateUtils.format(expiration, FormatStyle.LONG) + ").");
 			warning.setBorder(new EmptyBorder(5, 5, 5, 5));
 			panel.add(warning);
 			int opt = JOptionPane.showOptionDialog(parent, panel, "Advertencia", JOptionPane.NO_OPTION,
@@ -153,7 +154,7 @@ public final class LicenseValidator {
 	
 	private void notValid(LicenseMessage reason) throws IOException {
 		if (reason.isExpiration()) {
-			String message = reason.getMessage() + " Fecha de expiración: " + DateUtils.format(reason.getExpiration()) + ".";
+			String message = reason.getMessage() + " Fecha de expiración: " + DateUtils.format(reason.getExpiration(), FormatStyle.LONG) + ".";
 			ErrorMessage.show(message);
 			newLicense();
 		} else invalidate(reason.getMessage());

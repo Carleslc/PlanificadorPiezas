@@ -1,3 +1,4 @@
 fases: 10
-trabajadores: 10
-horas_diarias: 8
+trabajadores: 4
+hora_apertura: "08:00"
+hora_cierre: "16:00"

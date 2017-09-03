@@ -7,12 +7,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 import org.simpleyaml.exceptions.InvalidConfigurationException;
 
@@ -98,11 +98,6 @@ public class DataController {
 		return database.query("SELECT * FROM pedidos WHERE id_pedido = '" + orderId + "'").next();
 	}
 	
-	public void printAll() throws ClassNotFoundException, SQLException {
-		//System.out.println(Database.toString(database.query("SELECT * FROM pedidos")));
-		System.out.println(String.join("\n", getAll().stream().map(OrderDTO::toString).collect(Collectors.toList())));
-	}
-	
 	public void deleteAll() throws ClassNotFoundException, SQLException {
 		delete(null);
 	}
@@ -119,7 +114,11 @@ public class DataController {
 		return config.getWorkers();
 	}
 	
-	public int getDailyHours() {
-		return config.getDailyHours();
+	public LocalTime getOpenTime() {
+		return config.getDayOpeningTime();
+	}
+	
+	public LocalTime getCloseTime() {
+		return config.getDayClosingTime();
 	}
 }

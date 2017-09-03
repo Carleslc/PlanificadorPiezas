@@ -31,6 +31,7 @@ import com.snowarts.planificadorPiezas.domain.OrderCallback;
 import com.snowarts.planificadorPiezas.domain.OrderController;
 import com.snowarts.planificadorPiezas.domain.OrderDTO;
 import com.snowarts.planificadorPiezas.domain.Result;
+import com.snowarts.planificadorPiezas.presentation.utils.BounceProgressBar;
 import com.snowarts.planificadorPiezas.presentation.utils.CenterFrame;
 import com.snowarts.planificadorPiezas.presentation.utils.ErrorMessage;
 import com.snowarts.planificadorPiezas.presentation.utils.Icons;
@@ -48,6 +49,7 @@ public class OrderForm extends JFrame {
 	private boolean processing;
 	private JTextField identifier;
 	private JSpinner startDate;
+	private BounceProgressBar progress;
 	private Map<Integer, Double> phasesMap;
 	private List<PhaseInput> phases = new ArrayList<>();
 	
@@ -183,18 +185,15 @@ public class OrderForm extends JFrame {
 		if (checkOrder(id)) return;
 		
 		phasesMap = new HashMap<>();
-		double totalHours = 0D;
+		double totalHours = 0;
 		for (int i = 1; i <= phases.size(); i++) {
 			PhaseInput phase = phases.get(i - 1);
 			double hours = phase.getRawHours();
 			totalHours += hours;
-			if (hours != 0D) {
-				phasesMap.put(i, hours);
-				System.out.println("Fase " + i + " : " + phase.getHours() + "h " + phase.getMinutes() + "m");
-			}
+			if (hours != 0) phasesMap.put(i, hours);
 		}
 		
-		if (totalHours == 0D) {
+		if (totalHours == 0) {
 			WarningMessage.show("Debes especificar como mínimo 1 fase.");
 			return;
 		}
@@ -298,11 +297,14 @@ public class OrderForm extends JFrame {
 	
 	private void startProcessing() {
 		processing = true;
+		progress = new BounceProgressBar().title("Procesando Pedido").message("Procesando pedido...");
+		progress.start();
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 	}
 	
 	private void finishProcessing() {
 		processing = false;
+		progress.finish();
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 	}
 	

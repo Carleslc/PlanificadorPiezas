@@ -28,10 +28,6 @@ public class OrderController {
 		return new Order(dto);
 	}
 	
-	public void printAll() throws Exception {
-		data.printAll();
-	}
-	
 	public boolean exists(String orderId) throws Exception {
 		Validate.notNull(orderId);
 		return data.exists(orderId);
@@ -53,9 +49,5 @@ public class OrderController {
 
 	public int getWorkers() {
 		return data.getWorkers();
-	}
-	
-	public int getDailyHours() {
-		return data.getDailyHours();
 	}
 }

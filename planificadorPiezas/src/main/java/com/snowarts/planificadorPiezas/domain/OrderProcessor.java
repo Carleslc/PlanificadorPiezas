@@ -1,6 +1,15 @@
 package com.snowarts.planificadorPiezas.domain;
 
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.snowarts.planificadorPiezas.data.DataController;
 
@@ -34,10 +43,30 @@ class OrderProcessor {
 	
 	private void compute() throws ClassNotFoundException, SQLException {
 		data.save(order.toDTO());
-		data.printAll();
+		List<OrderDTO> dtos = data.getAll();
+		debug(dtos);
+		Stream<Order> orders = dtos.stream().map(dto -> new Order(dto)).sorted();
+		LinkedList<Phase> remaining = orders.flatMap(o -> o.getPhases().stream()).collect(Collectors.toCollection(LinkedList::new));
+		Map<Order, LocalDateTime> results = new HashMap<>();
+		Scheduler scheduler = new Scheduler(data.getPhases(), data.getWorkers(), data.getOpenTime(), data.getCloseTime());
 		
-		// Set the result
-		result = new Result(order.getId(), order.getStartDate());
+		ListIterator<Phase> remainingIterator = remaining.listIterator();
+		while (remainingIterator.hasNext()) {
+			Phase phase = remainingIterator.next();
+			LocalDateTime finish = scheduler.add(phase, remainingIterator);
+			Order related = phase.getRelated();
+			LocalDateTime currentResult = results.get(related);
+			if (currentResult == null || finish.isAfter(currentResult)) {
+				results.put(related, finish);
+			}
+		}
+		
+		System.out.println(scheduler);
+		result = new Result(order.getId(), results.get(order).toLocalDate());
+	}
+	
+	private <T> void debug(Collection<T> s) {
+		System.out.println(String.join("\n", s.stream().map(T::toString).collect(Collectors.toList())) + "\n");
 	}
 	
 }
