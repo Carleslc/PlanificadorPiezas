@@ -3,6 +3,8 @@ package com.nil.planificadorPiezas.data.utils;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.Date;
 
 public abstract class DateUtils {
@@ -21,6 +23,10 @@ public abstract class DateUtils {
 	
 	public static Date getDate(LocalDate date) {
 		return new Date(getEpochMillis(date));
+	}
+	
+	public static String format(LocalDate date) {
+		return date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG));
 	}
 	
 }

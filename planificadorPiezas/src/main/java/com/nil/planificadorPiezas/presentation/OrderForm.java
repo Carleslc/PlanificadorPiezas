@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -87,8 +86,7 @@ public class OrderForm extends JFrame {
 	}
 	
 	private void addContentPane() {
-		contentPane = new JPanel();
-		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.PAGE_AXIS));
+		contentPane = PanelFactory.newPanel();
 		setContentPane(contentPane);
 	}
 	

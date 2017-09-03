@@ -6,6 +6,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.WindowConstants;
+import javax.swing.border.EmptyBorder;
 
 public class BounceProgressBar extends JProgressBar {
 
@@ -22,6 +23,7 @@ public class BounceProgressBar extends JProgressBar {
 		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.PAGE_AXIS));
 		JPanel messagePane = PanelFactory.newInnerPanel();
 		message = new JLabel();
+		message.setBorder(new EmptyBorder(5, 5, 5, 5));
 		messagePane.add(message);
 		contentPane.add(messagePane);
 		JPanel barPane = PanelFactory.newInnerPanel();
@@ -31,13 +33,15 @@ public class BounceProgressBar extends JProgressBar {
 		CenterFrame.center(frame, 0, 0, 20, 20);
 	}
 	
-	public void setTitle(String title) {
+	public BounceProgressBar title(String title) {
 		frame.setTitle(title);
+		return this;
 	}
 	
-	public void setMessage(String message) {
+	public BounceProgressBar message(String message) {
 		this.message.setText(message);
 		frame.pack();
+		return this;
 	}
 	
 	public void start() {
