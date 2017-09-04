@@ -99,7 +99,9 @@ public final class LicenseValidator {
 			
 			if (opt == 0) {
 				license = LicenseDialog.showInput(parent, product);
-				validateOnline(true);
+				if (license == null) invalidate();
+				else if (license.isEmpty()) invalidate("Licencia inválida.");
+				else validateOnline(true);
 			} else onSuccess.run();
 		} else onSuccess.run();
 	}
