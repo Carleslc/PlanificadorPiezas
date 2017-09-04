@@ -16,7 +16,7 @@ class Config {
 	private static final String PATH = System.getProperty("user.dir") + DataController.MAIN_FOLDER + FILE_NAME;
 
 	private YamlFile config;
-	private int phases, workers;
+	private int phases;
 	private LocalTime dayOpeningTime, dayClosingTime;
 
 	Config() throws IOException, InvalidConfigurationException {
@@ -28,7 +28,6 @@ class Config {
 	void load() throws InvalidConfigurationException, IOException {
 		config.load();
 		phases = config.getInt("fases");
-		workers = config.getInt("trabajadores");
 		DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm");
 		dayOpeningTime = LocalTime.parse(config.getString("hora_apertura"), timeFormat);
 		dayClosingTime = LocalTime.parse(config.getString("hora_cierre"), timeFormat);
@@ -36,10 +35,6 @@ class Config {
 
 	int getPhases() {
 		return phases;
-	}
-
-	int getWorkers() {
-		return workers;
 	}
 
 	LocalTime getDayOpeningTime() {

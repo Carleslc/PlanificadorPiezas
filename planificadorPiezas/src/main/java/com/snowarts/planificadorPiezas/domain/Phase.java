@@ -4,6 +4,7 @@ class Phase {
 
 	private int id;
 	private int hours, minutes;
+	private boolean postponed;
 	private Order related;
 	
 	Phase(int id, double rawHours, Order related) {
@@ -15,6 +16,7 @@ class Phase {
 		this.related = related;
 		this.hours = hours;
 		this.minutes = minutes;
+		postponed = false;
 	}
 	
 	int getHours() {
@@ -35,6 +37,14 @@ class Phase {
 
 	public Order getRelated() {
 		return related;
+	}
+	
+	public void setPostponed() {
+		postponed = true;
+	}
+	
+	public boolean isPostponed() {
+		return postponed;
 	}
 	
 	@Override

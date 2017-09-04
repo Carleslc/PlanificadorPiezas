@@ -1,20 +1,25 @@
 package com.snowarts.planificadorPiezas.domain;
 
 import java.time.LocalDateTime;
+import java.time.format.FormatStyle;
 import java.time.temporal.ChronoUnit;
+import java.util.LinkedList;
+import java.util.List;
+
+import static com.snowarts.planificadorPiezas.data.utils.DateUtils.format;
 
 class WorkDay {
 
 	private LocalDateTime open, close, current;
-	private int workMinutes, workers;
+	private LinkedList<ScheduledPhase> phases;
+	private int workMinutes;
 	
-	WorkDay(LocalDateTime open, LocalDateTime close, int workers) {
+	WorkDay(int phaseId, LocalDateTime open, LocalDateTime close) {
 		if (open.isAfter(close)) throw new IllegalArgumentException("open must be before close");
 		this.open = current = open;
 		this.close = close;
-		this.workers = workers;
-		int totalMinutes = (int) open.until(close, ChronoUnit.MINUTES);
-		workMinutes = totalMinutes*workers;
+		workMinutes = (int) open.until(close, ChronoUnit.MINUTES);
+		phases = new LinkedList<>();
 	}
 	
 	public LocalDateTime getCurrentTime() {
@@ -26,7 +31,7 @@ class WorkDay {
 	}
 	
 	public boolean isFinished() {
-		return current.equals(close);
+		return workMinutes == 0;
 	}
 	
 	public void add(ScheduledPhase phase) {
@@ -34,6 +39,7 @@ class WorkDay {
 		if (minutes > getRemainingMinutes()) throw new IllegalArgumentException("Not enough working minutes");
 		workMinutes -= minutes;
 		current = phase.getScheduledFinishDate();
+		phases.add(phase);
 	}
 
 	public LocalDateTime getOpen() {
@@ -44,8 +50,12 @@ class WorkDay {
 		return close;
 	}
 	
+	public List<ScheduledPhase> getPhases() {
+		return phases;
+	}
+	
 	@Override
 	public String toString() {
-		return open + " < " + current + " > " + close + ". Workers: " + workers;
+		return format(open, FormatStyle.SHORT) + " < " + format(current, FormatStyle.SHORT) + " > " + format(close, FormatStyle.SHORT);
 	}
 }

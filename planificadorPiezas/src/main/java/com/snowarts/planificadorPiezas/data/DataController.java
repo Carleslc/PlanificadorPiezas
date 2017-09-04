@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 import org.simpleyaml.exceptions.InvalidConfigurationException;
 
@@ -41,7 +42,7 @@ public class DataController {
 	private static String getMainFolder() {
 		String name = PlanificadorPiezas.PROGRAM_NAME;
 		String dir = System.getProperty("user.dir");
-		String[] dirFolders = dir.split(File.separator);
+		String[] dirFolders = dir.split(Pattern.quote(File.separator));
 		dir = dirFolders[dirFolders.length - 1];
 		return name.equalsIgnoreCase(dir) ? "" : File.separator + name;
 	}
@@ -81,7 +82,7 @@ public class DataController {
 	
 	public List<OrderDTO> getAll() throws ClassNotFoundException, SQLException {
 		List<OrderDTO> all = new ArrayList<>();
-		ResultSet orders = database.query("SELECT id_pedido, id_fase, horas, fecha_inicio FROM pedidos ORDER BY id_pedido");
+		ResultSet orders = database.query("SELECT id_pedido, id_fase, horas, fecha_inicio FROM pedidos ORDER BY fecha_inicio, id_pedido, id_fase");
 		String lastOrderId = null;
 		LocalDate lastOrderStartDate = null;
 		Map<Integer, Double> phases = new HashMap<>();
@@ -124,10 +125,6 @@ public class DataController {
 	
 	public int getPhases() {
 		return config.getPhases();
-	}
-
-	public int getWorkers() {
-		return config.getWorkers();
 	}
 	
 	public LocalTime getOpenTime() {

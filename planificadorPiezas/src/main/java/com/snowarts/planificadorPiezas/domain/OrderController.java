@@ -25,7 +25,7 @@ public class OrderController {
 	
 	/** Convert OrderDTO to Order */
 	private Order getOrder(OrderDTO dto) {
-		return new Order(dto);
+		return new Order(dto, data.getOpenTime());
 	}
 	
 	public boolean exists(String orderId) throws Exception {
@@ -45,9 +45,5 @@ public class OrderController {
 	
 	public int getPhases() {
 		return data.getPhases();
-	}
-
-	public int getWorkers() {
-		return data.getWorkers();
 	}
 }

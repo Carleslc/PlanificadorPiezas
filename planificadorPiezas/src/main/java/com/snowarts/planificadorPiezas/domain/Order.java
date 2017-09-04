@@ -1,35 +1,50 @@
 package com.snowarts.planificadorPiezas.domain;
 
-import java.time.LocalDate;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.stream.Collectors;
 
 import org.simpleyaml.utils.Validate;
 
 class Order implements Comparable<Order> {
 	
-	private List<Phase> phases;
+	private ArrayList<Phase> phases;
+	private LinkedList<ScheduledPhase> scheduler;
 	private OrderDTO dto;
+	private LocalDateTime startDate;
 	
-	Order(OrderDTO fromDTO) {
+	Order(OrderDTO fromDTO, LocalTime startTime) {
 		Validate.notNull(fromDTO);
+		Validate.notNull(startTime);
 		dto = fromDTO;
+		startDate = dto.getStartDate().atTime(startTime);
 		phases = dto.getPhases()
 				.entrySet().stream()
 				.map(idHours -> new Phase(idHours.getKey(), idHours.getValue(), this))
-				.collect(Collectors.toList());
+				.collect(Collectors.toCollection(ArrayList::new));
+		scheduler = new LinkedList<>();
 	}
 	
 	String getId() {
 		return dto.getId();
 	}
 	
-	List<Phase> getPhases() {
+	ArrayList<Phase> getPhases() {
 		return phases;
 	}
 	
-	LocalDate getStartDate() {
-		return dto.getStartDate();
+	void add(ScheduledPhase scheduled) {
+		scheduler.add(scheduled);
+	}
+	
+	LocalDateTime getScheduledFinishDate() {
+		return scheduler.isEmpty() ? getStartDate() : scheduler.getLast().getScheduledFinishDate();
+	}
+	
+	LocalDateTime getStartDate() {
+		return startDate;
 	}
 	
 	OrderDTO toDTO() {
