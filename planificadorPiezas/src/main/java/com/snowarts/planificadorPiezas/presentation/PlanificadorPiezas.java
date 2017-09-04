@@ -18,13 +18,15 @@ import me.carleslc.serialnumber.OS;
 
 public class PlanificadorPiezas {
 
+	public static String PROGRAM_NAME = "planificadorPiezas";
+	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(() -> {
 			try {
 				setStyle();
 				OrderController controller = new OrderController();
 				OrderForm form = new OrderForm(controller);
-				LicenseValidator.validate("planificadorPiezas", form, () -> {
+				LicenseValidator.validate(PROGRAM_NAME, form, () -> {
 					form.setVisible(true);
 				});
 			} catch (Exception uncaught) {

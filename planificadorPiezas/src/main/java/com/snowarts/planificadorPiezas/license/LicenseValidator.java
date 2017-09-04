@@ -31,6 +31,7 @@ import org.simpleyaml.file.YamlFile;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.snowarts.planificadorPiezas.data.DataController;
 import com.snowarts.planificadorPiezas.data.utils.DateUtils;
 import com.snowarts.planificadorPiezas.domain.DumpError;
 import com.snowarts.planificadorPiezas.license.utils.ConnectionUtils;
@@ -41,7 +42,7 @@ import com.snowarts.planificadorPiezas.presentation.utils.PanelFactory;
 
 public final class LicenseValidator {
 	
-	private static final YamlFile LICENSE_FILE = new YamlFile(System.getProperty("user.dir") + "/.license");
+	private static final YamlFile LICENSE_FILE = new YamlFile(System.getProperty("user.dir") + DataController.MAIN_FOLDER + "/.license");
 	
 	static final String VALIDATION_SERVER = "http://67.207.76.44:8081/";
 	private static final String CRYPT_ALGORITHM = "AES";

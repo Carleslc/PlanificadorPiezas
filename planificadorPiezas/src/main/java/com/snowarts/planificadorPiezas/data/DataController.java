@@ -20,19 +20,35 @@ import com.healthmarketscience.jackcess.Database.FileFormat;
 import com.healthmarketscience.jackcess.DatabaseBuilder;
 import com.snowarts.planificadorPiezas.data.utils.DateUtils;
 import com.snowarts.planificadorPiezas.domain.OrderDTO;
+import com.snowarts.planificadorPiezas.presentation.PlanificadorPiezas;
 
 public class DataController {
 
-	private final String DATABASE_PATH = System.getProperty("user.dir") + "/pedidos.accdb";
+	public static final String MAIN_FOLDER = getMainFolder();
+	private final String DATABASE_PATH = System.getProperty("user.dir") + MAIN_FOLDER + "/pedidos.accdb";
 	
 	private Config config;
 	private Database database;
 	
 	public DataController() throws IOException, InvalidConfigurationException, ClassNotFoundException, SQLException {
-		config = new Config("config.yml");
+		checkMainFolder();
+		config = new Config();
 		boolean exists = checkDatabase();
 		database = new AccessDatabase(DATABASE_PATH);
 		if (!exists) database.update("CREATE TABLE pedidos (id_pedido TEXT NOT NULL, id_fase INTEGER NOT NULL, horas DOUBLE NOT NULL, fecha_inicio DATE NOT NULL, PRIMARY KEY (id_pedido, id_fase))");
+	}
+	
+	private static String getMainFolder() {
+		String name = PlanificadorPiezas.PROGRAM_NAME;
+		String dir = System.getProperty("user.dir");
+		String[] dirFolders = dir.split(File.separator);
+		dir = dirFolders[dirFolders.length - 1];
+		return name.equalsIgnoreCase(dir) ? "" : File.separator + name;
+	}
+	
+	private void checkMainFolder() {
+		if (MAIN_FOLDER.isEmpty()) return;
+		new File(MAIN_FOLDER.substring(1)).mkdirs();
 	}
 	
 	private boolean checkDatabase() throws IOException {

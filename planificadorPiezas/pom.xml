@@ -81,7 +81,7 @@
 							<dependencyReducedPomLocation>${project.build.directory}/dependency-reduced-pom.xml</dependencyReducedPomLocation>
 							<shadedArtifactAttached>false</shadedArtifactAttached>
 							<outputDirectory>${java.io.tmpdir}/libs</outputDirectory>
-							<minimizeJar>true</minimizeJar>
+							<minimizeJar>false</minimizeJar>
 						</configuration>
 					</execution>
 				</executions>

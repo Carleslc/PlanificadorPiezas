@@ -1,6 +1,9 @@
 package com.snowarts.planificadorPiezas.data;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
@@ -8,19 +11,22 @@ import org.simpleyaml.exceptions.InvalidConfigurationException;
 import org.simpleyaml.file.YamlFile;
 
 class Config {
+	
+	private static final String FILE_NAME = "/config.yml";
+	private static final String PATH = System.getProperty("user.dir") + DataController.MAIN_FOLDER + FILE_NAME;
 
 	private YamlFile config;
 	private int phases, workers;
 	private LocalTime dayOpeningTime, dayClosingTime;
 
-	Config(String path) throws IOException, InvalidConfigurationException {
-		config = new YamlFile(path);
-		if (config.exists()) config.load();
-		else config.createNewFile(true);
+	Config() throws IOException, InvalidConfigurationException {
+		config = new YamlFile(PATH);
+		if (!config.exists()) saveDefaultConfig();
 		load();
 	}
 
-	void load() {
+	void load() throws InvalidConfigurationException, IOException {
+		config.load();
 		phases = config.getInt("fases");
 		workers = config.getInt("trabajadores");
 		DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm");
@@ -42,5 +48,26 @@ class Config {
 
 	LocalTime getDayClosingTime() {
 		return dayClosingTime;
+	}
+	
+	private void saveDefaultConfig() throws IOException {
+        InputStream stream = null;
+        OutputStream resStreamOut = null;
+        try {
+            stream = Config.class.getResourceAsStream(FILE_NAME);
+            if (stream == null) {
+                throw new IOException("Cannot get resource " + FILE_NAME + " from jar file.");
+            }
+
+            int readBytes;
+            byte[] buffer = new byte[4096];
+            resStreamOut = new FileOutputStream(PATH);
+            while ((readBytes = stream.read(buffer)) > 0) {
+                resStreamOut.write(buffer, 0, readBytes);
+            }
+        } finally {
+            if (stream != null) stream.close();
+            if (resStreamOut != null) resStreamOut.close();
+        }
 	}
 }
