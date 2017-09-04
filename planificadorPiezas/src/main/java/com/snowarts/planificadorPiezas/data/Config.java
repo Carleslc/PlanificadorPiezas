@@ -12,14 +12,14 @@ class Config {
 	private YamlFile config;
 	private int phases, workers;
 	private LocalTime dayOpeningTime, dayClosingTime;
-	
+
 	Config(String path) throws IOException, InvalidConfigurationException {
 		config = new YamlFile(path);
 		if (config.exists()) config.load();
 		else config.createNewFile(true);
 		load();
 	}
-	
+
 	void load() {
 		phases = config.getInt("fases");
 		workers = config.getInt("trabajadores");
@@ -27,7 +27,7 @@ class Config {
 		dayOpeningTime = LocalTime.parse(config.getString("hora_apertura"), timeFormat);
 		dayClosingTime = LocalTime.parse(config.getString("hora_cierre"), timeFormat);
 	}
-	
+
 	int getPhases() {
 		return phases;
 	}
@@ -35,11 +35,11 @@ class Config {
 	int getWorkers() {
 		return workers;
 	}
-	
+
 	LocalTime getDayOpeningTime() {
 		return dayOpeningTime;
 	}
-	
+
 	LocalTime getDayClosingTime() {
 		return dayClosingTime;
 	}
