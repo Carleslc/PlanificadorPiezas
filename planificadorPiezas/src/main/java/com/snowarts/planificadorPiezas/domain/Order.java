@@ -14,6 +14,7 @@ class Order implements Comparable<Order> {
 	private LinkedList<ScheduledPhase> scheduler;
 	private OrderDTO dto;
 	private LocalDateTime startDate;
+	private int state;
 	
 	Order(OrderDTO fromDTO, LocalTime startTime) {
 		Validate.notNull(fromDTO);
@@ -24,6 +25,7 @@ class Order implements Comparable<Order> {
 				.entrySet().stream()
 				.map(idHours -> new Phase(idHours.getKey(), idHours.getValue(), this))
 				.collect(Collectors.toCollection(ArrayList::new));
+		state = 0;
 		scheduler = new LinkedList<>();
 	}
 	
@@ -35,8 +37,18 @@ class Order implements Comparable<Order> {
 		return phases;
 	}
 	
+	Phase getState() {
+		if (state >= phases.size()) return null;
+		return phases.get(state);
+	}
+	
 	void add(ScheduledPhase scheduled) {
 		scheduler.add(scheduled);
+		int scheduledPhaseMinutes = scheduler.stream()
+				.filter(s -> s.getPhase().equals(scheduled.getPhase()))
+				.mapToInt(s -> s.getPhase().getTotalMinutes())
+				.sum();
+		if (scheduledPhaseMinutes == getState().getTotalMinutes()) state++;
 	}
 	
 	LocalDateTime getScheduledFinishDate() {

@@ -51,6 +51,7 @@ public class OrderForm extends JFrame {
 	private JSpinner startDate;
 	private BounceProgressBar progress;
 	private Map<Integer, Double> phasesMap;
+	private Map<Integer, String> tags;
 	private List<PhaseInput> phases = new ArrayList<>();
 	
 	private DateTimeFormatter dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG);
@@ -58,6 +59,7 @@ public class OrderForm extends JFrame {
 	public OrderForm(OrderController controller) {
 		this.controller = controller;
 		processing = false;
+		tags = controller.getPhaseTags();
 		
 		addContentPane();
 		addOrderIdentifier();
@@ -122,8 +124,9 @@ public class OrderForm extends JFrame {
 	}
 	
 	private void addPhases() {
+		int indent = tags.values().stream().mapToInt(String::length).max().getAsInt();
 		for (int i = 1; i <= controller.getPhases(); i++) {
-			PhaseInput phase = new PhaseInput(i);
+			PhaseInput phase = new PhaseInput(i, tags.get(i), indent);
 			phases.add(phase);
 			contentPane.add(phase);
 		}
@@ -229,7 +232,9 @@ public class OrderForm extends JFrame {
 					phases.get(phase.getKey() - 1).setRawHours(phase.getValue());
 				}
 				startDate.setValue(DateUtils.getDate(order.getStartDate()));
-				Message.show("Se ha autorellenado el pedido con identificador " + id + ".");
+				LocalDate finishDate = order.getFinishDate();
+				Message.show("Se ha autorellenado el pedido con identificador " + id + "."
+						+ (finishDate != null ? "\nFecha estimada de finalización: " + DateUtils.format(finishDate, FormatStyle.LONG) : ""));
 			} else notExists(id);
 		} catch (Exception e) {
 			errorProcessing(e);
@@ -304,7 +309,7 @@ public class OrderForm extends JFrame {
 	
 	private void finishProcessing() {
 		processing = false;
-		progress.finish();
+		if (progress != null) progress.finish();
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 	}
 	

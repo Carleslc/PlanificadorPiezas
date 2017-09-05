@@ -30,8 +30,9 @@ class Scheduler {
 		WorkDay currentDay = phaseQueue.getLast();
 		LocalDateTime start = currentDay.getCurrentTime();
 		LocalDateTime lastScheduledPhaseTime = phase.getRelated().getScheduledFinishDate();
-		if (start.isBefore(lastScheduledPhaseTime)) {
+		if (!phase.equals(phase.getRelated().getState()) || start.isBefore(lastScheduledPhaseTime)) {
 			if (phase.isPostponed()) {
+				currentDay.setCurrentTime(lastScheduledPhaseTime);
 				start = lastScheduledPhaseTime;
 			} else {
 				remaining.add(phase);
@@ -77,10 +78,13 @@ class Scheduler {
 		StringBuilder phaseBuilder = new StringBuilder();
 		for (int i = 0; i < phases.size(); i++) {
 			phaseBuilder.append("PLANIFICACIÓN FASE ").append(i + 1).append("\n");
-			phases.get(i).forEach(workDay -> {
+			List<WorkDay> days = phases.get(i);
+			if (days.isEmpty()) phaseBuilder.append("No hay nada para esta fase.").append("\n");
+			days.forEach(workDay -> {
 				List<ScheduledPhase> scheduledPhases = workDay.getPhases();
 				scheduledPhases.forEach(scheduled -> phaseBuilder.append(scheduled).append("\n"));
 			});
+			phaseBuilder.append("\n");
 		}
 		return phaseBuilder.toString();
 	}

@@ -2,6 +2,7 @@ package com.snowarts.planificadorPiezas.domain;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Map;
 
 import org.apache.commons.lang.Validate;
 import org.simpleyaml.exceptions.InvalidConfigurationException;
@@ -45,5 +46,9 @@ public class OrderController {
 	
 	public int getPhases() {
 		return data.getPhases();
+	}
+	
+	public Map<Integer, String> getPhaseTags() {
+		return data.getPhaseTags();
 	}
 }

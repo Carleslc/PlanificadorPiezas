@@ -1,6 +1,9 @@
 package com.snowarts.planificadorPiezas.domain;
 
 import java.time.LocalDate;
+import java.time.format.FormatStyle;
+
+import com.snowarts.planificadorPiezas.data.utils.DateUtils;
 
 public class Result {
 
@@ -28,6 +31,11 @@ public class Result {
 
 	public LocalDate getFinishDate() {
 		return finishDate;
+	}
+
+	@Override
+	public String toString() {
+		return "El pedido #" + id + " finalizará el día " + DateUtils.format(finishDate, FormatStyle.LONG) + ".";
 	}
 	
 }

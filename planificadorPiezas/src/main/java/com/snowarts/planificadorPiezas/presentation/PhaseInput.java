@@ -8,6 +8,8 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.EmptyBorder;
 
+import com.google.common.base.Strings;
+
 class PhaseInput extends JPanel {
 
 	private static final long serialVersionUID = 6662166871891572448L;
@@ -15,11 +17,13 @@ class PhaseInput extends JPanel {
 	private int id;
 	private JSpinner hours, minutes;
 	
-	PhaseInput(int id) {
+	PhaseInput(int id, String tag, int indent) {
 		this.id = id;
 		setBorder(new EmptyBorder(2, 2, 2, 2));
 		setLayout(new FlowLayout(FlowLayout.CENTER));
-		add(new JLabel("Fase " + id));
+		String label = tag == null ? "Fase " + id : tag;
+		int indentSize = indent - label.length();
+		add(new JLabel(label + Strings.repeat(" ", indentSize)));
 		hours = new JSpinner(new SpinnerNumberModel(0, 0, null, 1));
 		((JSpinner.DefaultEditor) hours.getEditor()).getTextField().setColumns(5);
 		add(hours);

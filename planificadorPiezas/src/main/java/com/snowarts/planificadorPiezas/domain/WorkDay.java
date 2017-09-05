@@ -1,6 +1,8 @@
 package com.snowarts.planificadorPiezas.domain;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.FormatStyle;
 import java.time.temporal.ChronoUnit;
 import java.util.LinkedList;
@@ -18,12 +20,30 @@ class WorkDay {
 		if (open.isAfter(close)) throw new IllegalArgumentException("open must be before close");
 		this.open = current = open;
 		this.close = close;
-		workMinutes = (int) open.until(close, ChronoUnit.MINUTES);
 		phases = new LinkedList<>();
+		setWorkMinutes();
+	}
+	
+	private void setWorkMinutes() {
+		workMinutes = (int) current.until(close, ChronoUnit.MINUTES);
 	}
 	
 	public LocalDateTime getCurrentTime() {
 		return current;
+	}
+	
+	public void setCurrentTime(LocalDateTime current) {
+		LocalTime time = current.toLocalTime();
+		LocalTime openTime = open.toLocalTime();
+		LocalTime closeTime = close.toLocalTime();
+		if (time.isBefore(openTime) || time.isAfter(closeTime)) throw new IllegalArgumentException("time must be between open and close");
+		LocalDate date = current.toLocalDate();
+		if (!date.isEqual(open.toLocalDate())) {
+			open = LocalDateTime.of(date, openTime);
+			close = LocalDateTime.of(date, closeTime);
+		}
+		this.current = current;
+		setWorkMinutes();
 	}
 	
 	public int getRemainingMinutes() {

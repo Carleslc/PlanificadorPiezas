@@ -6,7 +6,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+import org.simpleyaml.configuration.ConfigurationSection;
 import org.simpleyaml.exceptions.InvalidConfigurationException;
 import org.simpleyaml.file.YamlFile;
 
@@ -17,6 +20,7 @@ class Config {
 
 	private YamlFile config;
 	private int phases;
+	private Map<Integer, String> tags;
 	private LocalTime dayOpeningTime, dayClosingTime;
 
 	Config() throws IOException, InvalidConfigurationException {
@@ -27,14 +31,24 @@ class Config {
 
 	void load() throws InvalidConfigurationException, IOException {
 		config.load();
-		phases = config.getInt("fases");
 		DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm");
 		dayOpeningTime = LocalTime.parse(config.getString("hora_apertura"), timeFormat);
 		dayClosingTime = LocalTime.parse(config.getString("hora_cierre"), timeFormat);
+		phases = config.getInt("fases.total");
+		ConfigurationSection tagsSection = config.getConfigurationSection("fases.etiquetas");
+		try {
+			tags = tagsSection.getKeys(false).stream().collect(Collectors.toMap(key -> Integer.valueOf(key), key -> tagsSection.getString(key)));
+		} catch (NumberFormatException ignore) {
+			throw new InvalidConfigurationException("Los identificadores de etiqueta de fase deben ser números enteros (config.yml)");
+		}
 	}
 
 	int getPhases() {
 		return phases;
+	}
+	
+	Map<Integer, String> getTags() {
+		return tags;
 	}
 
 	LocalTime getDayOpeningTime() {

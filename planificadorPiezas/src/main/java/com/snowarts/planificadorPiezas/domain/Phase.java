@@ -1,14 +1,15 @@
 package com.snowarts.planificadorPiezas.domain;
 
-class Phase {
+class Phase implements Comparable<Phase> {
 
 	private int id;
+	private String tag;
 	private int hours, minutes;
 	private boolean postponed;
 	private Order related;
 	
 	Phase(int id, double rawHours, Order related) {
-		this(id, (int) rawHours, (int) (rawHours - ((int) rawHours))*60, related);
+		this(id, (int) rawHours, getMinutes(rawHours), related);
 	}
 	
 	Phase(int id, int hours, int minutes, Order related) {
@@ -17,6 +18,11 @@ class Phase {
 		this.hours = hours;
 		this.minutes = minutes;
 		postponed = false;
+	}
+	
+	private static int getMinutes(double rawHours) {
+		int hours = (int) rawHours;
+		return (int) ((rawHours - hours)*60);
 	}
 	
 	int getHours() {
@@ -34,6 +40,14 @@ class Phase {
 	int getId() {
 		return id;
 	}
+	
+	void setTag(String tag) {
+		this.tag = tag;
+	}
+	
+	String getTag() {
+		return tag;
+	}
 
 	public Order getRelated() {
 		return related;
@@ -45,6 +59,14 @@ class Phase {
 	
 	public boolean isPostponed() {
 		return postponed;
+	}
+	
+	@Override
+	public int compareTo(Phase o) {
+		int compare = related.compareTo(o.related);
+		if (compare == 0) compare = Integer.compare(id, o.id);
+		if (compare == 0) compare = related.getId().compareTo(o.related.getId());
+		return compare;
 	}
 	
 	@Override
@@ -69,7 +91,7 @@ class Phase {
 	
 	@Override
 	public String toString() {
-		String s = "Pedido " + related.getId() + " Fase " + id + " | " + hours + "h";
+		String s = "Pedido " + related.getId() + " Fase " + id + (tag != null ? " (" + tag + ")" : "") + " | " + hours + "h";
 		if (minutes > 0) s += " " + minutes + "m";
 		return s;
 	}

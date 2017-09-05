@@ -1,9 +1,10 @@
 package com.snowarts.planificadorPiezas.domain;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.time.LocalTime;
-import java.util.ArrayDeque;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -11,15 +12,17 @@ import java.util.stream.Collectors;
 import com.snowarts.planificadorPiezas.data.DataController;
 
 class OrderProcessor {
-
+	
 	private Order order;
 	private Result result;
+	private List<Result> results;
 	private OrderCallback callback;
 	private DataController data;
 	
 	OrderProcessor(Order order, DataController data) {
 		this.order = order;
 		this.data = data;
+		results = new LinkedList<>();
 	}
 	
 	void setCallback(OrderCallback callback) {
@@ -38,34 +41,40 @@ class OrderProcessor {
 		}).start();
 	}
 	
-	private void compute() throws ClassNotFoundException, SQLException {
+	private void compute() throws ClassNotFoundException, SQLException, IOException {
 		data.save(order.toDTO());
+		PrintWriter scheduleLog = data.getScheduleWriter();
 		List<OrderDTO> dtos = data.getAll();
-		debug(dtos);
+		scheduleLog.println("PEDIDOS");
+		scheduleLog.println(String.join("\n", dtos.stream().map(OrderDTO::toString).collect(Collectors.toList())));
+		scheduleLog.println(); scheduleLog.println();
 		LocalTime openTime = data.getOpenTime();
 		List<Order> orders = dtos.stream().map(dto -> new Order(dto, openTime)).collect(Collectors.toCollection(LinkedList::new));
 		Scheduler scheduler = new Scheduler(data.getPhases(), openTime, data.getCloseTime());
 		
-		ArrayDeque<Phase> remaining = new ArrayDeque<>();
-		int maxPhases = orders.stream().map(o -> o.getPhases().size()).max(Integer::compare).get();
-		for (int i = 0; i < maxPhases; ++i) {
-			for (Order order : orders) {
-				List<Phase> phases = order.getPhases();
-				if (i < phases.size()) remaining.add(phases.get(i));
-			}
-		}
+		LinkedList<Phase> remaining = orders.stream().flatMap(o -> o.getPhases().stream()).collect(Collectors.toCollection(LinkedList::new));
+		Collections.sort(remaining);
 		
 		while (!remaining.isEmpty()) {
 			Phase phase = remaining.poll();
 			scheduler.add(phase, remaining);
 		}
 		
-		System.out.println(scheduler);
-		result = new Result(order.getId(), orders.get(orders.indexOf(this.order)).getScheduledFinishDate().toLocalDate());
+		scheduleLog.println(scheduler);
+		scheduleLog.println("RESULTADOS");
+		orders.stream().sorted((o1, o2) -> o1.getScheduledFinishDate().compareTo(o2.getScheduledFinishDate())).forEach(o -> {
+			Result result = new Result(o.getId(), o.getScheduledFinishDate().toLocalDate());
+			results.add(result);
+			scheduleLog.println(result);
+		});
+		saveResults();
+		scheduleLog.close();
 	}
 	
-	private <T> void debug(Collection<T> s) {
-		System.out.println(String.join("\n", s.stream().map(T::toString).collect(Collectors.toList())) + "\n");
+	private void saveResults() throws ClassNotFoundException, SQLException {
+		for (Result result : results) {
+			if (result.getId().equals(order.getId())) this.result = result;
+			data.setFinishDate(result.getId(), result.getFinishDate());
+		}
 	}
-	
 }
