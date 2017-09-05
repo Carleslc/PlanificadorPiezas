@@ -48,10 +48,10 @@ class Scheduler {
 		} else {
 			// Split Phase
 			double rawHoursFirst = remainingMinutes/60.0;
-			Phase first = new Phase(phase.getId(), rawHoursFirst, phase.getRelated());
+			Phase first = new Phase(phase.getId(), rawHoursFirst, false, phase.getRelated());
 			int splittedMinutes = minutes - remainingMinutes;
 			double rawHoursSecond = splittedMinutes/60.0;
-			Phase second = new Phase(phase.getId(), rawHoursSecond, phase.getRelated());
+			Phase second = new Phase(phase.getId(), rawHoursSecond, false, phase.getRelated());
 			scheduled = new ScheduledPhase(first, start, start.plusMinutes(remainingMinutes));
 			remaining.push(second);
 		}

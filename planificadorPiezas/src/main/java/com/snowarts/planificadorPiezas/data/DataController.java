@@ -11,10 +11,9 @@ import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.Validate;
@@ -24,6 +23,7 @@ import com.healthmarketscience.jackcess.Database.FileFormat;
 import com.healthmarketscience.jackcess.DatabaseBuilder;
 import com.snowarts.planificadorPiezas.data.utils.DateUtils;
 import com.snowarts.planificadorPiezas.domain.OrderDTO;
+import com.snowarts.planificadorPiezas.domain.PhaseDTO;
 import com.snowarts.planificadorPiezas.presentation.PlanificadorPiezas;
 
 public class DataController {
@@ -43,7 +43,7 @@ public class DataController {
 		config = new Config();
 		boolean exists = checkDatabase();
 		database = new AccessDatabase(DATABASE_PATH);
-		if (!exists) database.update("CREATE TABLE pedidos (id_pedido TEXT NOT NULL, id_fase INTEGER NOT NULL, horas DOUBLE NOT NULL, fecha_inicio DATE NOT NULL, fecha_final DATE, PRIMARY KEY (id_pedido, id_fase))");
+		if (!exists) database.update("CREATE TABLE pedidos (id_pedido TEXT NOT NULL, id_fase INTEGER NOT NULL, horas DOUBLE NOT NULL, fecha_inicio DATE NOT NULL, fecha_final DATE, externa BOOLEAN NOT NULL, PRIMARY KEY (id_pedido, id_fase))");
 	}
 	
 	private static String getMainFolder() {
@@ -70,7 +70,7 @@ public class DataController {
 	
 	private void checkStatements() throws ClassNotFoundException, SQLException {
 		if (insertPstmnt == null || insertPstmnt.isClosed()) {
-			insertPstmnt = database.preparedStatement("INSERT INTO pedidos (id_pedido, id_fase, horas, fecha_inicio) VALUES (?, ?, ?, ?)");
+			insertPstmnt = database.preparedStatement("INSERT INTO pedidos (id_pedido, id_fase, horas, fecha_inicio, externa) VALUES (?, ?, ?, ?, ?)");
 		}
 		if (updatePstmnt == null || updatePstmnt.isClosed()) {
 			updatePstmnt = database.preparedStatement("UPDATE pedidos SET fecha_final = ? WHERE id_pedido = ?");
@@ -92,12 +92,10 @@ public class DataController {
 		checkStatements();
 		insertPstmnt.setString(1, order.getId());
 		insertPstmnt.setDate(4, new Date(DateUtils.getEpochMillis(order.getStartDate())));
-		Map<Integer, Double> phases = order.getPhases();
-		for (Entry<Integer, Double> phase : phases.entrySet()) {
-			int phaseId = phase.getKey();
-			double hoursRaw = phase.getValue();
-			insertPstmnt.setInt(2, phaseId);
-			insertPstmnt.setDouble(3, hoursRaw);
+		for (PhaseDTO phase : order.getPhases()) {
+			insertPstmnt.setInt(2, phase.getId());
+			insertPstmnt.setDouble(3, phase.getRawHours());
+			insertPstmnt.setBoolean(5, phase.isExternal());
 			insertPstmnt.executeUpdate();
 		}
 	}
@@ -113,11 +111,11 @@ public class DataController {
 	
 	public List<OrderDTO> getAll() throws ClassNotFoundException, SQLException {
 		List<OrderDTO> all = new ArrayList<>();
-		ResultSet orders = database.query("SELECT id_pedido, id_fase, horas, fecha_inicio, fecha_final FROM pedidos ORDER BY fecha_inicio, id_pedido, id_fase");
+		ResultSet orders = database.query("SELECT id_pedido, id_fase, horas, fecha_inicio, fecha_final, externa FROM pedidos ORDER BY fecha_inicio, id_pedido, id_fase");
 		String lastOrderId = null;
 		LocalDate lastOrderStartDate = null;
 		LocalDate lastOrderEndDate = null;
-		Map<Integer, Double> phases = new HashMap<>();
+		List<PhaseDTO> phases = new LinkedList<>();
 		while (orders.next()) {
 			String orderId = orders.getString(1);
 			if (!orderId.equals(lastOrderId)) {
@@ -125,13 +123,13 @@ public class DataController {
 					OrderDTO dto = new OrderDTO(lastOrderId, phases, lastOrderStartDate);
 					if (lastOrderEndDate != null) dto.setFinishDate(lastOrderEndDate);
 					all.add(dto);
-					phases = new HashMap<>();
+					phases = new LinkedList<>();
 				}
 				lastOrderId = orders.getString(1);
 				lastOrderStartDate = DateUtils.getLocalDate(orders.getDate(4));
 				lastOrderEndDate = DateUtils.getLocalDate(orders.getDate(5));
 			}
-			phases.put(orders.getInt(2), orders.getDouble(3));
+			phases.add(new PhaseDTO(orders.getInt(2), orders.getDouble(3), orders.getBoolean(6)));
 		}
 		if (lastOrderId != null) all.add(new OrderDTO(lastOrderId, phases, lastOrderStartDate));
 		return all;
@@ -139,12 +137,12 @@ public class DataController {
 	
 	public OrderDTO get(String orderId) throws ClassNotFoundException, SQLException {
 		Validate.notNull(orderId);
-		ResultSet order = database.query("SELECT id_fase, horas, fecha_inicio, fecha_final FROM pedidos WHERE id_pedido = '" + orderId + "'");
+		ResultSet order = database.query("SELECT id_fase, horas, fecha_inicio, fecha_final, externa FROM pedidos WHERE id_pedido = '" + orderId + "'");
 		order.next(); // Throws exception if not exists
-		Map<Integer, Double> phases = new HashMap<>();
+		List<PhaseDTO> phases = new LinkedList<>();
 		LocalDate startDate = DateUtils.getLocalDate(order.getDate(3));
 		LocalDate finishDate = DateUtils.getLocalDate(order.getDate(4));
-		do { phases.put(order.getInt(1), order.getDouble(2)); } while (order.next());
+		do { phases.add(new PhaseDTO(order.getInt(1), order.getDouble(2), order.getBoolean(5))); } while (order.next());
 		OrderDTO dto = new OrderDTO(orderId, phases, startDate);
 		if (finishDate != null) dto.setFinishDate(finishDate);
 		return dto;
@@ -168,8 +166,16 @@ public class DataController {
 		return config.getPhases();
 	}
 	
+	public int getExternalPhases() {
+		return config.getExternalPhases();
+	}
+	
 	public Map<Integer, String> getPhaseTags() {
 		return config.getTags();
+	}
+	
+	public Map<Integer, String> getExternalPhaseTags() {
+		return config.getExternalTags();
 	}
 	
 	public LocalTime getOpenTime() {

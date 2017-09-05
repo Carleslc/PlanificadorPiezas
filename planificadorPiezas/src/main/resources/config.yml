@@ -1,4 +1,19 @@
-fases: 10
-trabajadores: 4
+# Intervalo de trabajo
 hora_apertura: "08:00"
 hora_cierre: "16:00"
+
+# Esperas para comenzar un pedido
+fases_externas:
+  total: 2
+  etiquetas:
+    1: "Proveedor 1"
+    2: "Proveedor 2"
+
+# Fases de trabajo
+fases:
+  total: 4
+  etiquetas:
+    1: "Repulsar y marcar"
+    2: "Refrentar"
+    3: "Matrizar"
+    4: "Limpiar"

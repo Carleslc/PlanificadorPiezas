@@ -2,17 +2,17 @@ package com.snowarts.planificadorPiezas.domain;
 
 import java.time.LocalDate;
 import java.time.format.FormatStyle;
-import java.util.Map;
+import java.util.List;
 
 import com.snowarts.planificadorPiezas.data.utils.DateUtils;
 
 public class OrderDTO {
 	
 	private String id;
-	private Map<Integer, Double> phases;
+	private List<PhaseDTO> phases;
 	private LocalDate startDate, finishDate;
 	
-	public OrderDTO(String id, Map<Integer, Double> phases, LocalDate startDate) {
+	public OrderDTO(String id, List<PhaseDTO> phases, LocalDate startDate) {
 		this.id = id;
 		this.phases = phases;
 		this.startDate = startDate;
@@ -22,8 +22,8 @@ public class OrderDTO {
 		return id;
 	}
 	
-	public Map<Integer, Double> getPhases() {
-		return this.phases;
+	public List<PhaseDTO> getPhases() {
+		return phases;
 	}
 
 	public LocalDate getStartDate() {

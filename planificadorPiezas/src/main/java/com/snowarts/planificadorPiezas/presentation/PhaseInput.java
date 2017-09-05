@@ -1,36 +1,37 @@
 package com.snowarts.planificadorPiezas.presentation;
 
-import java.awt.FlowLayout;
+import java.awt.Color;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.border.EmptyBorder;
 
-import com.google.common.base.Strings;
+import com.snowarts.planificadorPiezas.presentation.utils.PanelFactory;
+import com.snowarts.planificadorPiezas.presentation.utils.SpinnerUtils;
 
-class PhaseInput extends JPanel {
+class PhaseInput {
 
-	private static final long serialVersionUID = 6662166871891572448L;
-	
-	private int id;
 	private JSpinner hours, minutes;
 	
-	PhaseInput(int id, String tag, int indent) {
-		this.id = id;
-		setBorder(new EmptyBorder(2, 2, 2, 2));
-		setLayout(new FlowLayout(FlowLayout.CENTER));
-		String label = tag == null ? "Fase " + id : tag;
-		int indentSize = indent - label.length();
-		add(new JLabel(label + Strings.repeat(" ", indentSize)));
+	PhaseInput(String label, JPanel tagsPanel, JPanel inputsPanel, boolean external) {
+		tagsPanel.add(new JLabel(label, JLabel.RIGHT));
+		JPanel inputPanel = PanelFactory.newInnerBoxPanel();
+		PanelFactory.setMargin(inputPanel, 10, 10, 10, 10);
 		hours = new JSpinner(new SpinnerNumberModel(0, 0, null, 1));
 		((JSpinner.DefaultEditor) hours.getEditor()).getTextField().setColumns(5);
-		add(hours);
-		add(new JLabel("h"));
+		if (external) SpinnerUtils.setBackgroundColor(hours, Color.decode("0xffe4e1"));
+		inputPanel.add(hours);
+		JLabel h = new JLabel("h");
+		PanelFactory.setMargin(h, 0, 2, 0, 5);
+		inputPanel.add(h);
 		minutes = new JSpinner(new SpinnerNumberModel(0, 0, 59, 1));
-		add(minutes);
-		add(new JLabel("m"));
+		if (external) SpinnerUtils.setBackgroundColor(minutes, Color.decode("0xffe4e1"));
+		inputPanel.add(minutes);
+		JLabel m = new JLabel("m");
+		PanelFactory.setMargin(m, 0, 2, 0, 2);
+		inputPanel.add(m);
+		inputsPanel.add(inputPanel);
 	}
 	
 	public int getHours() {
@@ -54,10 +55,6 @@ class PhaseInput extends JPanel {
 	
 	public double getRawHours() {
 		return getHours() + getMinutes()/60.0;
-	}
-
-	public int getId() {
-		return id;
 	}
 
 }

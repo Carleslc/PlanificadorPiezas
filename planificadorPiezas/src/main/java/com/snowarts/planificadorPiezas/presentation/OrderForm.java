@@ -1,5 +1,6 @@
 package com.snowarts.planificadorPiezas.presentation;
 
+import java.awt.BorderLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -10,16 +11,16 @@ import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
@@ -30,6 +31,7 @@ import com.snowarts.planificadorPiezas.domain.DumpError;
 import com.snowarts.planificadorPiezas.domain.OrderCallback;
 import com.snowarts.planificadorPiezas.domain.OrderController;
 import com.snowarts.planificadorPiezas.domain.OrderDTO;
+import com.snowarts.planificadorPiezas.domain.PhaseDTO;
 import com.snowarts.planificadorPiezas.domain.Result;
 import com.snowarts.planificadorPiezas.presentation.utils.BounceProgressBar;
 import com.snowarts.planificadorPiezas.presentation.utils.CenterFrame;
@@ -50,9 +52,10 @@ public class OrderForm extends JFrame {
 	private JTextField identifier;
 	private JSpinner startDate;
 	private BounceProgressBar progress;
-	private Map<Integer, Double> phasesMap;
-	private Map<Integer, String> tags;
+	private List<PhaseDTO> phasesList;
+	private Map<Integer, String> tags, externalTags;
 	private List<PhaseInput> phases = new ArrayList<>();
+	private List<PhaseInput> externalPhases = new ArrayList<>();
 	
 	private DateTimeFormatter dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG);
 	
@@ -60,6 +63,7 @@ public class OrderForm extends JFrame {
 		this.controller = controller;
 		processing = false;
 		tags = controller.getPhaseTags();
+		externalTags = controller.getExternalPhaseTags();
 		
 		addContentPane();
 		addOrderIdentifier();
@@ -124,11 +128,33 @@ public class OrderForm extends JFrame {
 	}
 	
 	private void addPhases() {
-		int indent = tags.values().stream().mapToInt(String::length).max().getAsInt();
-		for (int i = 1; i <= controller.getPhases(); i++) {
-			PhaseInput phase = new PhaseInput(i, tags.get(i), indent);
-			phases.add(phase);
-			contentPane.add(phase);
+		JPanel phasesPanel = PanelFactory.newBorderPanel();
+		int externalPhasesCount = controller.getExternalPhases();
+		int phasesCount = controller.getPhases();
+		int totalPhases = externalPhasesCount + phasesCount;
+		JPanel tagsPanel = PanelFactory.newGridPanel(totalPhases, 1);
+		PanelFactory.setMargin(tagsPanel, 2, 10, 2, 0);
+		JPanel inputsPanel = PanelFactory.newGridPanel(totalPhases, 1);
+		PanelFactory.setMargin(inputsPanel, 2, 0, 2, 0);
+		addPhases(tagsPanel, inputsPanel, true, externalTags, externalPhasesCount, externalPhases);
+		addPhases(tagsPanel, inputsPanel, false, tags, phasesCount, phases);
+		phasesPanel.add(tagsPanel, BorderLayout.WEST);
+		phasesPanel.add(inputsPanel, BorderLayout.CENTER);
+		addSeparator();
+		contentPane.add(phasesPanel);
+		addSeparator();
+	}
+	
+	private void addSeparator() {
+		contentPane.add(new JSeparator());
+	}
+	
+	private static void addPhases(JPanel tagsPanel, JPanel inputsPanel, boolean external, Map<Integer, String> tags, int count, List<PhaseInput> to) {
+		for (int i = 1; i <= count; i++) {
+			String tag = tags.get(i);
+			String label = tag == null ? (external ? "Proveedor " : "Fase ") + i : tag;
+			PhaseInput phase = new PhaseInput(label, tagsPanel, inputsPanel, external);
+			to.add(phase);
 		}
 	}
 	
@@ -187,13 +213,19 @@ public class OrderForm extends JFrame {
 		String id = identifier.getText().trim();
 		if (checkOrder(id)) return;
 		
-		phasesMap = new HashMap<>();
+		phasesList = new LinkedList<>();
+		for (int i = 1; i <= externalPhases.size(); i++) {
+			PhaseInput externalPhase = externalPhases.get(i - 1);
+			double hours = externalPhase.getRawHours();
+			if (hours != 0) phasesList.add(new PhaseDTO(-i, hours, true));
+		}
+		
 		double totalHours = 0;
 		for (int i = 1; i <= phases.size(); i++) {
 			PhaseInput phase = phases.get(i - 1);
 			double hours = phase.getRawHours();
 			totalHours += hours;
-			if (hours != 0) phasesMap.put(i, hours);
+			if (hours != 0) phasesList.add(new PhaseDTO(i, hours, false));
 		}
 		
 		if (totalHours == 0) {
@@ -228,8 +260,9 @@ public class OrderForm extends JFrame {
 			if (controller.exists(id)) {
 				OrderDTO order = controller.getOrder(id);
 				clear();
-				for (Entry<Integer, Double> phase : order.getPhases().entrySet()) {
-					phases.get(phase.getKey() - 1).setRawHours(phase.getValue());
+				for (PhaseDTO phase : order.getPhases()) {
+					if (phase.isExternal()) externalPhases.get(-phase.getId() - 1).setRawHours(phase.getRawHours());
+					else phases.get(phase.getId() - 1).setRawHours(phase.getRawHours());
 				}
 				startDate.setValue(DateUtils.getDate(order.getStartDate()));
 				LocalDate finishDate = order.getFinishDate();
@@ -274,7 +307,7 @@ public class OrderForm extends JFrame {
 	}
 	
 	private OrderDTO getOrderDTO(String id) {
-		return new OrderDTO(id, phasesMap, DateUtils.getLocalDate((Date) startDate.getValue()));
+		return new OrderDTO(id, phasesList, DateUtils.getLocalDate((Date) startDate.getValue()));
 	}
 	
 	private OrderCallback onProcessed() {

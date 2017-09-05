@@ -20,13 +20,23 @@ class Order implements Comparable<Order> {
 		Validate.notNull(fromDTO);
 		Validate.notNull(startTime);
 		dto = fromDTO;
-		startDate = dto.getStartDate().atTime(startTime);
-		phases = dto.getPhases()
-				.entrySet().stream()
-				.map(idHours -> new Phase(idHours.getKey(), idHours.getValue(), this))
+		startDate = dto.getStartDate().atTime(startTime)
+				.plusMinutes(getTotalMinutes(dto.getPhases().stream()
+						.filter(phase -> phase.isExternal())
+						.mapToDouble(phase -> phase.getRawHours())
+						.sum()));
+		phases = dto.getPhases().stream()
+				.filter(phase -> !phase.isExternal())
+				.map(phase -> new Phase(phase.getId(), phase.getRawHours(), phase.isExternal(), this))
 				.collect(Collectors.toCollection(ArrayList::new));
 		state = 0;
 		scheduler = new LinkedList<>();
+	}
+	
+	private static int getTotalMinutes(double rawHours) {
+		int hours = (int) rawHours;
+		int minutes = (int) ((rawHours - hours)*60);
+		return hours*60 + minutes;
 	}
 	
 	String getId() {

@@ -5,14 +5,14 @@ class Phase implements Comparable<Phase> {
 	private int id;
 	private String tag;
 	private int hours, minutes;
-	private boolean postponed;
+	private boolean postponed, external;
 	private Order related;
 	
-	Phase(int id, double rawHours, Order related) {
-		this(id, (int) rawHours, getMinutes(rawHours), related);
+	Phase(int id, double rawHours, boolean external, Order related) {
+		this(id, (int) rawHours, getMinutes(rawHours), external, related);
 	}
 	
-	Phase(int id, int hours, int minutes, Order related) {
+	Phase(int id, int hours, int minutes, boolean external, Order related) {
 		this.id = id;
 		this.related = related;
 		this.hours = hours;
@@ -23,6 +23,10 @@ class Phase implements Comparable<Phase> {
 	private static int getMinutes(double rawHours) {
 		int hours = (int) rawHours;
 		return (int) ((rawHours - hours)*60);
+	}
+	
+	boolean isExternal() {
+		return external;
 	}
 	
 	int getHours() {

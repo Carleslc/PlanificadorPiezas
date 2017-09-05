@@ -1,9 +1,0 @@
-hora_apertura: "08:00"
-hora_cierre: "16:00"
-fases:
-  total: 4
-  etiquetas:
-    1: "Repulsar y marcar"
-    2: "Refrentar"
-    3: "Matrizar"
-    4: "Limpiar"

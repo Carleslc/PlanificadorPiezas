@@ -51,4 +51,12 @@ public class OrderController {
 	public Map<Integer, String> getPhaseTags() {
 		return data.getPhaseTags();
 	}
+	
+	public int getExternalPhases() {
+		return data.getExternalPhases();
+	}
+	
+	public Map<Integer, String> getExternalPhaseTags() {
+		return data.getExternalPhaseTags();
+	}
 }
