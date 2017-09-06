@@ -91,7 +91,7 @@ public final class LicenseValidator {
 			String[] options = { "Introducir nueva licencia", "Continuar con la licencia actual" };
 			JPanel panel = PanelFactory.newPanel();
 			JLabel warning = new JLabel("Tu licencia caducará en " + now.until(expiration, ChronoUnit.DAYS) +
-					" días (" + DateUtils.format(expiration, FormatStyle.LONG) + ").");
+					" días (" + DateUtils.format(expiration.toLocalDate(), FormatStyle.LONG) + ").");
 			warning.setBorder(new EmptyBorder(5, 5, 5, 5));
 			panel.add(warning);
 			int opt = JOptionPane.showOptionDialog(parent, panel, "Advertencia", JOptionPane.NO_OPTION,
