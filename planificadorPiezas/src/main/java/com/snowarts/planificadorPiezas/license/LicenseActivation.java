@@ -1,6 +1,6 @@
 package com.snowarts.planificadorPiezas.license;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import com.google.gson.annotations.SerializedName;
@@ -23,11 +23,11 @@ class LicenseActivation {
 		this.fingerprint = fingerprint;
 	}
 
-	public LocalDate getActivatedAt() {
-		return DateUtils.getLocalDate(activatedAt);
+	public LocalDateTime getActivatedAt() {
+		return DateUtils.getLocalDateTime(activatedAt);
 	}
 
-	public void setActivatedAt(LocalDate activatedAt) {
+	public void setActivatedAt(LocalDateTime activatedAt) {
 		this.activatedAt = DateUtils.getDate(activatedAt);
 	}
 

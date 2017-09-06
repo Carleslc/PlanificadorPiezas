@@ -1,6 +1,6 @@
 package com.snowarts.planificadorPiezas.license;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import com.snowarts.planificadorPiezas.data.utils.DateUtils;
@@ -43,12 +43,12 @@ class License {
 		this.quantity = quantity;
 	}
 
-	public LocalDate getExpiration() {
-		if (expiration == null) return LocalDate.now().plusYears(100);
-		return DateUtils.getLocalDate(expiration);
+	public LocalDateTime getExpiration() {
+		if (expiration == null) return LocalDateTime.now().plusYears(100);
+		return DateUtils.getLocalDateTime(expiration);
 	}
 
-	public void setExpiration(LocalDate expiration) {
+	public void setExpiration(LocalDateTime expiration) {
 		this.expiration = DateUtils.getDate(expiration);
 	}
 	

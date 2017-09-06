@@ -1,6 +1,6 @@
 package com.snowarts.planificadorPiezas.domain;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.FormatStyle;
 
 import com.snowarts.planificadorPiezas.data.utils.DateUtils;
@@ -8,11 +8,11 @@ import com.snowarts.planificadorPiezas.data.utils.DateUtils;
 public class Result {
 
 	private String id;
-	private LocalDate finishDate;
+	private LocalDateTime finishDate;
 	
 	public Result() {}
 	
-	public Result(String id, LocalDate finishDate) {
+	public Result(String id, LocalDateTime finishDate) {
 		setId(id);
 		setFinishDate(finishDate);
 	}
@@ -25,11 +25,11 @@ public class Result {
 		return id;
 	}
 	
-	void setFinishDate(LocalDate finishDate) {
+	void setFinishDate(LocalDateTime finishDate) {
 		this.finishDate = finishDate;
 	}
 
-	public LocalDate getFinishDate() {
+	public LocalDateTime getFinishDate() {
 		return finishDate;
 	}
 

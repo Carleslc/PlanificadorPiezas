@@ -3,12 +3,12 @@ package com.snowarts.planificadorPiezas.data;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.sql.Types;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -43,7 +43,7 @@ public class DataController {
 		config = new Config();
 		boolean exists = checkDatabase();
 		database = new AccessDatabase(DATABASE_PATH);
-		if (!exists) database.update("CREATE TABLE pedidos (id_pedido TEXT NOT NULL, id_fase INTEGER NOT NULL, horas DOUBLE NOT NULL, fecha_inicio DATE NOT NULL, fecha_final DATE, externa BOOLEAN NOT NULL, PRIMARY KEY (id_pedido, id_fase))");
+		if (!exists) database.update("CREATE TABLE pedidos (id_pedido TEXT NOT NULL, id_fase INTEGER NOT NULL, horas DOUBLE NOT NULL, fecha_inicio DATETIME NOT NULL, fecha_final DATETIME, externa BOOLEAN NOT NULL, PRIMARY KEY (id_pedido, id_fase))");
 	}
 	
 	private static String getMainFolder() {
@@ -91,7 +91,7 @@ public class DataController {
 		Validate.notNull(order);
 		checkStatements();
 		insertPstmnt.setString(1, order.getId());
-		insertPstmnt.setDate(4, new Date(DateUtils.getEpochMillis(order.getStartDate())));
+		insertPstmnt.setTimestamp(4, new Timestamp(DateUtils.getEpochMillis(order.getStartDate())));
 		for (PhaseDTO phase : order.getPhases()) {
 			insertPstmnt.setInt(2, phase.getId());
 			insertPstmnt.setDouble(3, phase.getRawHours());
@@ -100,11 +100,11 @@ public class DataController {
 		}
 	}
 	
-	public void setFinishDate(String orderId, LocalDate date) throws ClassNotFoundException, SQLException {
+	public void setFinishDate(String orderId, LocalDateTime date) throws ClassNotFoundException, SQLException {
 		Validate.notNull(orderId);
 		checkStatements();
-		if (date == null) updatePstmnt.setNull(1, Types.DATE);
-		else updatePstmnt.setDate(1, new Date(DateUtils.getEpochMillis(date)));
+		if (date == null) updatePstmnt.setNull(1, Types.TIMESTAMP);
+		else updatePstmnt.setTimestamp(1, new Timestamp(DateUtils.getEpochMillis(date)));
 		updatePstmnt.setString(2, orderId);
 		updatePstmnt.executeUpdate();
 	}
@@ -113,8 +113,8 @@ public class DataController {
 		List<OrderDTO> all = new ArrayList<>();
 		ResultSet orders = database.query("SELECT id_pedido, id_fase, horas, fecha_inicio, fecha_final, externa FROM pedidos ORDER BY fecha_inicio, id_pedido, id_fase");
 		String lastOrderId = null;
-		LocalDate lastOrderStartDate = null;
-		LocalDate lastOrderEndDate = null;
+		LocalDateTime lastOrderStartDate = null;
+		LocalDateTime lastOrderEndDate = null;
 		List<PhaseDTO> phases = new LinkedList<>();
 		while (orders.next()) {
 			String orderId = orders.getString(1);
@@ -126,8 +126,8 @@ public class DataController {
 					phases = new LinkedList<>();
 				}
 				lastOrderId = orders.getString(1);
-				lastOrderStartDate = DateUtils.getLocalDate(orders.getDate(4));
-				lastOrderEndDate = DateUtils.getLocalDate(orders.getDate(5));
+				lastOrderStartDate = DateUtils.getLocalDateTime(orders.getTimestamp(4));
+				lastOrderEndDate = DateUtils.getLocalDateTime(orders.getTimestamp(5));
 			}
 			phases.add(new PhaseDTO(orders.getInt(2), orders.getDouble(3), orders.getBoolean(6)));
 		}
@@ -140,8 +140,8 @@ public class DataController {
 		ResultSet order = database.query("SELECT id_fase, horas, fecha_inicio, fecha_final, externa FROM pedidos WHERE id_pedido = '" + orderId + "'");
 		order.next(); // Throws exception if not exists
 		List<PhaseDTO> phases = new LinkedList<>();
-		LocalDate startDate = DateUtils.getLocalDate(order.getDate(3));
-		LocalDate finishDate = DateUtils.getLocalDate(order.getDate(4));
+		LocalDateTime startDate = DateUtils.getLocalDateTime(order.getTimestamp(3));
+		LocalDateTime finishDate = DateUtils.getLocalDateTime(order.getTimestamp(4));
 		do { phases.add(new PhaseDTO(order.getInt(1), order.getDouble(2), order.getBoolean(5))); } while (order.next());
 		OrderDTO dto = new OrderDTO(orderId, phases, startDate);
 		if (finishDate != null) dto.setFinishDate(finishDate);

@@ -11,22 +11,22 @@ import java.util.Date;
 import org.simpleyaml.utils.Validate;
 
 public abstract class DateUtils {
-
-	public static long getEpochMillis(LocalDate date) {
+	
+	public static long getEpochMillis(LocalDateTime date) {
 		if (date == null) return 0L;
-		return date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+		return date.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 	}
 	
-	public static LocalDate getLocalDate(long epochMillis) {
-		return Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault()).toLocalDate();
+	public static LocalDateTime getLocalDateTime(long epochMillis) {
+		return Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault()).toLocalDateTime();
 	}
 	
-	public static LocalDate getLocalDate(Date date) {
+	public static LocalDateTime getLocalDateTime(Date date) {
 		if (date == null) return null;
-		return getLocalDate(date.getTime());
+		return getLocalDateTime(date.getTime());
 	}
 	
-	public static Date getDate(LocalDate date) {
+	public static Date getDate(LocalDateTime date) {
 		if (date == null) return null;
 		return new Date(getEpochMillis(date));
 	}
@@ -40,7 +40,15 @@ public abstract class DateUtils {
 	public static String format(LocalDateTime date, FormatStyle style) {
 		Validate.notNull(date);
 		Validate.notNull(style);
+		if (style == FormatStyle.LONG) return format(date, FormatStyle.LONG, FormatStyle.SHORT);
 		return date.format(DateTimeFormatter.ofLocalizedDateTime(style));
+	}
+	
+	public static String format(LocalDateTime date, FormatStyle dateFormat, FormatStyle timeFormat) {
+		Validate.notNull(date);
+		Validate.notNull(dateFormat);
+		Validate.notNull(timeFormat);
+		return date.format(DateTimeFormatter.ofLocalizedDateTime(dateFormat, timeFormat));
 	}
 	
 }

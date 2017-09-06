@@ -49,7 +49,7 @@ class OrderProcessor {
 		scheduleLog.println(String.join("\n", dtos.stream().map(OrderDTO::toString).collect(Collectors.toList())));
 		scheduleLog.println(); scheduleLog.println();
 		LocalTime openTime = data.getOpenTime();
-		List<Order> orders = dtos.stream().map(dto -> new Order(dto, openTime)).collect(Collectors.toCollection(LinkedList::new));
+		List<Order> orders = dtos.stream().map(dto -> new Order(dto)).collect(Collectors.toCollection(LinkedList::new));
 		Scheduler scheduler = new Scheduler(data.getPhases(), openTime, data.getCloseTime());
 		
 		LinkedList<Phase> remaining = orders.stream().flatMap(o -> o.getPhases().stream()).collect(Collectors.toCollection(LinkedList::new));
@@ -63,7 +63,7 @@ class OrderProcessor {
 		scheduleLog.println(scheduler);
 		scheduleLog.println("RESULTADOS");
 		orders.stream().sorted((o1, o2) -> o1.getScheduledFinishDate().compareTo(o2.getScheduledFinishDate())).forEach(o -> {
-			Result result = new Result(o.getId(), o.getScheduledFinishDate().toLocalDate());
+			Result result = new Result(o.getId(), o.getScheduledFinishDate());
 			results.add(result);
 			scheduleLog.println(result);
 		});

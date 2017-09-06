@@ -1,7 +1,6 @@
 package com.snowarts.planificadorPiezas.domain;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.OptionalDouble;
@@ -17,11 +16,10 @@ class Order implements Comparable<Order> {
 	private LocalDateTime startDate;
 	private int state;
 	
-	Order(OrderDTO fromDTO, LocalTime startTime) {
+	Order(OrderDTO fromDTO) {
 		Validate.notNull(fromDTO);
-		Validate.notNull(startTime);
 		dto = fromDTO;
-		startDate = dto.getStartDate().atTime(startTime)
+		startDate = dto.getStartDate()
 				.plusMinutes(getTotalMinutes(dto.getPhases().stream()
 						.filter(phase -> phase.isExternal())
 						.mapToDouble(phase -> phase.getRawHours())

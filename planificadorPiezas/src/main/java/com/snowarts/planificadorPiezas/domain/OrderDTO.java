@@ -1,6 +1,6 @@
 package com.snowarts.planificadorPiezas.domain;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.FormatStyle;
 import java.util.List;
 
@@ -10,9 +10,9 @@ public class OrderDTO {
 	
 	private String id;
 	private List<PhaseDTO> phases;
-	private LocalDate startDate, finishDate;
+	private LocalDateTime startDate, finishDate;
 	
-	public OrderDTO(String id, List<PhaseDTO> phases, LocalDate startDate) {
+	public OrderDTO(String id, List<PhaseDTO> phases, LocalDateTime startDate) {
 		this.id = id;
 		this.phases = phases;
 		this.startDate = startDate;
@@ -26,15 +26,15 @@ public class OrderDTO {
 		return phases;
 	}
 
-	public LocalDate getStartDate() {
+	public LocalDateTime getStartDate() {
 		return startDate;
 	}
 	
-	public void setFinishDate(LocalDate finishDate) {
+	public void setFinishDate(LocalDateTime finishDate) {
 		this.finishDate = finishDate;
 	}
 	
-	public LocalDate getFinishDate() {
+	public LocalDateTime getFinishDate() {
 		return finishDate;
 	}
 	

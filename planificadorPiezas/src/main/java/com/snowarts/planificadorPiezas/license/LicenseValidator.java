@@ -8,7 +8,7 @@ import java.net.HttpURLConnection;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.FormatStyle;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
@@ -50,7 +50,7 @@ public final class LicenseValidator {
 	
 	private String product, license;
 	private Runnable onSuccess;
-	private LocalDate expiration;
+	private LocalDateTime expiration;
 	private JFrame parent;
 	
 	private LicenseValidator(String product, String license, JFrame parent, Runnable onSuccess) {
@@ -86,7 +86,7 @@ public final class LicenseValidator {
 	
 	private void expirationWarning() {
 		if (expiration == null) return;
-		LocalDate now = LocalDate.now();
+		LocalDateTime now = LocalDateTime.now();
 		if (now.plusDays(30).isAfter(expiration)) {
 			String[] options = { "Introducir nueva licencia", "Continuar con la licencia actual" };
 			JPanel panel = PanelFactory.newPanel();
@@ -125,7 +125,7 @@ public final class LicenseValidator {
 	private boolean offline() {
 		SecretKey secret = decodeSecret(LICENSE_FILE.getString("expiration.secret"));
 		expiration = decryptDate(LICENSE_FILE.getString("expiration.offline"), secret);
-		return LocalDate.now().isBefore(expiration);
+		return LocalDateTime.now().isBefore(expiration);
 	}
 	
 	private BounceProgressBar licenseProgressBar() {
@@ -143,7 +143,8 @@ public final class LicenseValidator {
 	}
 	
 	private void validateServer(boolean showIfIsValid) throws IOException {
-		ConnectionUtils.connect(VALIDATION_SERVER + "products/" + product + "/licenses/" + license + ConnectionUtils.getFingerprintParameters(),
+		String url = VALIDATION_SERVER + "products/" + product + "/licenses/" + license + ConnectionUtils.getFingerprintParameters();
+		ConnectionUtils.connect(url,
 				con -> {
 					boolean valid = con.getResponseCode() == HttpURLConnection.HTTP_OK;
 					String response = ConnectionUtils.read(new BufferedReader(new InputStreamReader(valid ? con.getInputStream() : con.getErrorStream())));
@@ -199,7 +200,7 @@ public final class LicenseValidator {
 		return Base64.getDecoder().decode(src);
 	}
 	
-	private String encryptDate(LocalDate date, Key secret) {
+	private String encryptDate(LocalDateTime date, Key secret) {
 		try {
 			Cipher cipher = Cipher.getInstance(secret.getAlgorithm());
 			cipher.init(Cipher.ENCRYPT_MODE, secret);
@@ -210,11 +211,11 @@ public final class LicenseValidator {
 		}
 	}
 	
-	private LocalDate decryptDate(String dateEncrypted, Key secret) {
+	private LocalDateTime decryptDate(String dateEncrypted, Key secret) {
 		try {
 			Cipher cipher = Cipher.getInstance(secret.getAlgorithm());
 	        cipher.init(Cipher.DECRYPT_MODE, secret);
-	        return LocalDate.parse(new String(cipher.doFinal(decode(dateEncrypted)), "UTF8"));
+	        return LocalDateTime.parse(new String(cipher.doFinal(decode(dateEncrypted)), "UTF8"));
 		} catch (NoSuchAlgorithmException | InvalidKeyException | IllegalBlockSizeException
 				| BadPaddingException | NoSuchPaddingException | UnsupportedEncodingException e) {
 			throw new RuntimeException(e.getMessage(), e);

@@ -5,7 +5,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
@@ -56,8 +56,6 @@ public class OrderForm extends JFrame {
 	private Map<Integer, String> tags, externalTags;
 	private List<PhaseInput> phases = new ArrayList<>();
 	private List<PhaseInput> externalPhases = new ArrayList<>();
-	
-	private DateTimeFormatter dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG);
 	
 	public OrderForm(OrderController controller) {
 		this.controller = controller;
@@ -182,14 +180,22 @@ public class OrderForm extends JFrame {
 	private void addStartDate() {
 		JPanel datePanel = PanelFactory.newInnerPanel();
 		datePanel.add(new JLabel("Fecha de inicio"));
-		LocalDate localNow = LocalDate.now();
-		Date now = DateUtils.getDate(localNow);
-		Date max = DateUtils.getDate(localNow.plusYears(100));
-		startDate = new JSpinner(new SpinnerDateModel(now, now, max, Calendar.DAY_OF_MONTH));
-		startDate.setEditor(new JSpinner.DateEditor(startDate, "dd/MM/yyyy"));
-		((JSpinner.DefaultEditor) startDate.getEditor()).getTextField().setColumns(7);
+		LocalDateTime now = LocalDateTime.now();
+		Date current = DateUtils.getDate(getCurrentStartDate(now));
+		Date max = DateUtils.getDate(now.plusYears(100));
+		startDate = new JSpinner(new SpinnerDateModel(current, current, max, Calendar.HOUR_OF_DAY));
+		startDate.setEditor(new JSpinner.DateEditor(startDate, "HH:mm - dd/MM/yyyy"));
+		((JSpinner.DefaultEditor) startDate.getEditor()).getTextField().setColumns(12);
 		datePanel.add(startDate);
 		contentPane.add(datePanel);
+	}
+	
+	private LocalDateTime getCurrentStartDate(LocalDateTime from) {
+		LocalDateTime open = from.toLocalDate().atTime(controller.getOpenTime());
+		LocalDateTime close = from.toLocalDate().atTime(controller.getOpenTime());
+		if (from.isBefore(open)) return open;
+		else if (from.isAfter(close)) return from.toLocalDate().plusDays(1).atTime(controller.getOpenTime());
+		return from;
 	}
 	
 	private void clear() {
@@ -265,7 +271,7 @@ public class OrderForm extends JFrame {
 					else phases.get(phase.getId() - 1).setRawHours(phase.getRawHours());
 				}
 				startDate.setValue(DateUtils.getDate(order.getStartDate()));
-				LocalDate finishDate = order.getFinishDate();
+				LocalDateTime finishDate = order.getFinishDate();
 				Message.show("Se ha autorellenado el pedido con identificador " + id + "."
 						+ (finishDate != null ? "\nFecha estimada de finalización: " + DateUtils.format(finishDate, FormatStyle.LONG) : ""));
 			} else notExists(id);
@@ -307,7 +313,7 @@ public class OrderForm extends JFrame {
 	}
 	
 	private OrderDTO getOrderDTO(String id) {
-		return new OrderDTO(id, phasesList, DateUtils.getLocalDate((Date) startDate.getValue()));
+		return new OrderDTO(id, phasesList, DateUtils.getLocalDateTime((Date) startDate.getValue()));
 	}
 	
 	private OrderCallback onProcessed() {
@@ -316,7 +322,7 @@ public class OrderForm extends JFrame {
 			@Override
 			public void onProcessed(Result result) {
 				Message.show("El pedido con identificador " + result.getId()
-					+ " estará listo para el día " + dateFormatter.format(result.getFinishDate()) + ".");
+					+ " estará listo para el día " + DateUtils.format(result.getFinishDate(), FormatStyle.LONG) + ".");
 				finishProcessing();
 			}
 			

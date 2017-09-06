@@ -2,6 +2,7 @@ package com.snowarts.planificadorPiezas.domain;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.LocalTime;
 import java.util.Map;
 
 import org.apache.commons.lang.Validate;
@@ -26,7 +27,7 @@ public class OrderController {
 	
 	/** Convert OrderDTO to Order */
 	private Order getOrder(OrderDTO dto) {
-		return new Order(dto, data.getOpenTime());
+		return new Order(dto);
 	}
 	
 	public boolean exists(String orderId) throws Exception {
@@ -58,5 +59,13 @@ public class OrderController {
 	
 	public Map<Integer, String> getExternalPhaseTags() {
 		return data.getExternalPhaseTags();
+	}
+	
+	public LocalTime getOpenTime() {
+		return data.getOpenTime();
+	}
+	
+	public LocalTime getCloseTime() {
+		return data.getCloseTime();
 	}
 }
