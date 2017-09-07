@@ -31,6 +31,14 @@ public abstract class DateUtils {
 		return new Date(getEpochMillis(date));
 	}
 	
+	public static LocalDateTime min(LocalDateTime d1, LocalDateTime d2) {
+		return d1.isBefore(d2) ? d1 : d2;
+	}
+	
+	public static LocalDateTime max(LocalDateTime d1, LocalDateTime d2) {
+		return d1.isAfter(d2) ? d1 : d2;
+	}
+	
 	public static String format(LocalDate date, FormatStyle style) {
 		Validate.notNull(date);
 		Validate.notNull(style);

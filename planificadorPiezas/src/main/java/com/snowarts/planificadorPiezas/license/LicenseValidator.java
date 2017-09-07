@@ -165,7 +165,9 @@ public final class LicenseValidator {
 	}
 	
 	private void validate(boolean showIfIsValid, LicenseActivation activation) throws IOException {
-		if (showIfIsValid && !LICENSE_FILE.exists()) Message.show("Licencia válida.");
+		if (showIfIsValid && (!LICENSE_FILE.exists() || !LICENSE_FILE.getString("key").equals(license))) {
+			Message.show("Licencia válida.");
+		}
 		LICENSE_FILE.createNewFile(true);
 		LICENSE_FILE.set("key", license);
 		expiration = activation.getLicense().getExpiration();

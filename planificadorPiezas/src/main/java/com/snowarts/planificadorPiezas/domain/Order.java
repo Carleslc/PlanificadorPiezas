@@ -3,7 +3,6 @@ package com.snowarts.planificadorPiezas.domain;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.OptionalDouble;
 import java.util.stream.Collectors;
 
 import org.simpleyaml.utils.Validate;
@@ -23,7 +22,7 @@ class Order implements Comparable<Order> {
 				.plusMinutes(getTotalMinutes(dto.getPhases().stream()
 						.filter(phase -> phase.isExternal())
 						.mapToDouble(phase -> phase.getRawHours())
-						.max()));
+						.sum()));
 		phases = dto.getPhases().stream()
 				.filter(phase -> !phase.isExternal())
 				.map(phase -> new Phase(phase.getId(), phase.getRawHours(), phase.isExternal(), this))
@@ -32,9 +31,7 @@ class Order implements Comparable<Order> {
 		scheduler = new LinkedList<>();
 	}
 	
-	private static int getTotalMinutes(OptionalDouble optRawHours) {
-		if (!optRawHours.isPresent()) return 0;
-		double rawHours = optRawHours.getAsDouble();
+	private static int getTotalMinutes(double rawHours) {
 		int hours = (int) rawHours;
 		int minutes = (int) ((rawHours - hours)*60);
 		return hours*60 + minutes;

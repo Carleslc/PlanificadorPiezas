@@ -24,7 +24,7 @@ import com.healthmarketscience.jackcess.DatabaseBuilder;
 import com.snowarts.planificadorPiezas.data.utils.DateUtils;
 import com.snowarts.planificadorPiezas.domain.OrderDTO;
 import com.snowarts.planificadorPiezas.domain.PhaseDTO;
-import com.snowarts.planificadorPiezas.presentation.PlanificadorPiezas;
+import com.snowarts.planificadorPiezas.presentation.Rem;
 
 public class DataController {
 
@@ -47,7 +47,7 @@ public class DataController {
 	}
 	
 	private static String getMainFolder() {
-		String name = PlanificadorPiezas.PROGRAM_NAME;
+		String name = Rem.PROGRAM_NAME;
 		String dir = System.getProperty("user.dir");
 		String[] dirFolders = dir.split(Pattern.quote(File.separator));
 		dir = dirFolders[dirFolders.length - 1];

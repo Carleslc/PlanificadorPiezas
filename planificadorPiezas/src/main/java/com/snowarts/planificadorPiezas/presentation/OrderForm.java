@@ -73,7 +73,7 @@ public class OrderForm extends JFrame {
 	
 	private void setWindowSettings() {
 		CenterFrame.center(this, 0, 100, 50, 10);
-		setTitle("Planificador de Piezas");
+		setTitle(Rem.class.getSimpleName());
 		setIconImage(Icons.MAIN);
 		setResizable(true);
 		JScrollPane scroll = new JScrollPane(contentPane);
@@ -180,9 +180,9 @@ public class OrderForm extends JFrame {
 		JPanel datePanel = PanelFactory.newInnerPanel();
 		datePanel.add(new JLabel("Fecha de inicio"));
 		LocalDateTime now = LocalDateTime.now();
-		Date current = DateUtils.getDate(getCurrentStartDate(now));
-		Date max = DateUtils.getDate(now.plusYears(100));
-		startDate = new JSpinner(new SpinnerDateModel(current, current, max, Calendar.HOUR_OF_DAY));
+		Date current = DateUtils.getDate(getCurrentStartDate(now.plusMinutes(1)));
+		Date min = DateUtils.getDate(now);
+		startDate = new JSpinner(new SpinnerDateModel(current, min, null, Calendar.HOUR_OF_DAY));
 		startDate.setEditor(new JSpinner.DateEditor(startDate, "HH:mm - dd/MM/yyyy"));
 		((JSpinner.DefaultEditor) startDate.getEditor()).getTextField().setColumns(12);
 		datePanel.add(startDate);
@@ -191,15 +191,22 @@ public class OrderForm extends JFrame {
 	
 	private LocalDateTime getCurrentStartDate(LocalDateTime from) {
 		LocalDateTime open = from.toLocalDate().atTime(controller.getOpenTime());
-		LocalDateTime close = from.toLocalDate().atTime(controller.getOpenTime());
+		LocalDateTime close = from.toLocalDate().atTime(controller.getCloseTime());
 		if (from.isBefore(open)) return open;
 		else if (from.isAfter(close)) return from.toLocalDate().plusDays(1).atTime(controller.getOpenTime());
 		return from;
 	}
 	
 	private void clear() {
+		identifier.setText("");
+		externalPhases.forEach(PhaseInput::clear);
 		phases.forEach(PhaseInput::clear);
-		startDate.setValue(((SpinnerDateModel)startDate.getModel()).getStart());
+		LocalDateTime now = LocalDateTime.now();
+		Date current = DateUtils.getDate(getCurrentStartDate(now.plusMinutes(1)));
+		Date min = DateUtils.getDate(now);
+		SpinnerDateModel model = ((SpinnerDateModel) startDate.getModel());
+		model.setStart(min);
+		startDate.setValue(current);
 	}
 	
 	private boolean checkOrder(String id) {
@@ -269,7 +276,10 @@ public class OrderForm extends JFrame {
 					if (phase.isExternal()) externalPhases.get(-phase.getId() - 1).setRawHours(phase.getRawHours());
 					else phases.get(phase.getId() - 1).setRawHours(phase.getRawHours());
 				}
+				SpinnerDateModel model = ((SpinnerDateModel) startDate.getModel());
+				model.setStart(DateUtils.getDate(DateUtils.min(LocalDateTime.now(), order.getStartDate())));
 				startDate.setValue(DateUtils.getDate(order.getStartDate()));
+				identifier.setText(id);
 				LocalDateTime finishDate = order.getFinishDate();
 				Message.show("Se ha autorellenado el pedido con identificador " + id + "."
 						+ (finishDate != null ? "\nFecha estimada de finalización: " + DateUtils.format(finishDate, FormatStyle.LONG) : ""));

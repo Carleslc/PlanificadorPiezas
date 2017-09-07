@@ -75,8 +75,8 @@ final class LicenseDialog {
 				progress.finish();
 			} catch (IOException e) {
 				progress.finish();
-				error("No se ha podido obtener la licencia. Prueba de nuevo más tarde.");
 				DumpError.dump(e);
+				error("No se ha podido obtener la licencia. Prueba de nuevo más tarde.");
 			}
 		}).start();
 	}

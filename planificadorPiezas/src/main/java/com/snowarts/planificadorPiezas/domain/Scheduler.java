@@ -26,10 +26,14 @@ class Scheduler {
 	
 	void add(Phase phase, Deque<Phase> remaining) {
 		LinkedList<WorkDay> phaseQueue = phases.get(phase.getId() - 1);
-		if (phaseQueue.isEmpty()) phaseQueue.add(newWorkDay(phase.getId(), phase.getRelated().getStartDate().toLocalDate()));
+		if (phaseQueue.isEmpty()) {
+			LocalDateTime startDate = phase.getRelated().getStartDate();
+			WorkDay day = newWorkDay(phase.getId(), fixDate(startDate).toLocalDate());
+			phaseQueue.add(day);
+		}
 		WorkDay currentDay = phaseQueue.getLast();
 		LocalDateTime start = currentDay.getCurrentTime();
-		LocalDateTime lastScheduledPhaseTime = phase.getRelated().getScheduledFinishDate();
+		LocalDateTime lastScheduledPhaseTime = fixDate(phase.getRelated().getScheduledFinishDate());
 		if (!phase.equals(phase.getRelated().getState()) || start.isBefore(lastScheduledPhaseTime)) {
 			if (phase.isPostponed()) {
 				currentDay.setCurrentTime(lastScheduledPhaseTime);
@@ -58,10 +62,17 @@ class Scheduler {
 		add(scheduled, currentDay, phaseQueue);
 	}
 	
+	private LocalDateTime fixDate(LocalDateTime current) {
+		if (current.toLocalTime().isAfter(dayClosing)) current = current.toLocalDate().plusDays(1).atTime(dayOpening);
+		return current;
+	}
+	
 	private void add(ScheduledPhase scheduled, WorkDay workDay, LinkedList<WorkDay> phaseQueue) {
 		Phase phase = scheduled.getPhase();
-		workDay.add(scheduled);
-		phase.getRelated().add(scheduled);
+		if (scheduled.getPhase().getTotalMinutes() > 0) {
+			workDay.add(scheduled);
+			phase.getRelated().add(scheduled);
+		}
 		checkDay(workDay, phase.getId(), phaseQueue);
 	}
 	

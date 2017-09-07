@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -50,7 +51,7 @@ public class ConnectionUtils {
 			con.setReadTimeout(10000);
 			
 			onConnected.onConnected(con);
-    	} catch (SocketTimeoutException e) {
+    	} catch (SocketException | SocketTimeoutException e) {
 			onTimeout.onTimeout(e);
 		}
     }
@@ -72,6 +73,6 @@ public class ConnectionUtils {
     
     @FunctionalInterface
     public interface OnTimeoutCallback {
-    	void onTimeout(SocketTimeoutException e);
+    	void onTimeout(IOException e);
     }
 }
