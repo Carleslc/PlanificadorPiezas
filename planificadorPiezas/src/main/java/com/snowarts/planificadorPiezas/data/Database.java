@@ -137,6 +137,8 @@ abstract class Database {
 					sb.append(rs.getString(i)).append(i < columnCount ? ",\t" : "");          
 				sb.append("\n");
 			}
+			
+			while (rs.previous()); // Reset to the first position
 		} catch (Exception e) {
 			sb.append("toString ERROR: ").append(e.getMessage());
 		}

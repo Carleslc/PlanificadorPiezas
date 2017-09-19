@@ -6,6 +6,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -108,7 +109,7 @@ public class OrderForm extends JFrame {
 		JButton loadButton = new JButton("Cargar");
 		loadButton.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				loadButtonClicked();
 			}
 		});
@@ -116,7 +117,7 @@ public class OrderForm extends JFrame {
 		JButton deleteButton = new JButton("Eliminar");
 		deleteButton.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				deleteButtonClicked();
 			}
 		});
@@ -160,7 +161,7 @@ public class OrderForm extends JFrame {
 		JButton processButton = new JButton("Añadir / Modificar");
 		processButton.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				addButtonClicked();
 			}
 		});
@@ -168,7 +169,7 @@ public class OrderForm extends JFrame {
 		JButton clearButton = new JButton("Restablecer");
 		clearButton.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				clear();
 			}
 		});
@@ -190,10 +191,14 @@ public class OrderForm extends JFrame {
 	}
 	
 	private LocalDateTime getCurrentStartDate(LocalDateTime from) {
-		LocalDateTime open = from.toLocalDate().atTime(controller.getOpenTime());
+		LocalTime openTime = controller.getOpenTime();
+		from = DateUtils.avoidWeekend(from, openTime);
+		LocalDateTime open = from.toLocalDate().atTime(openTime);
 		LocalDateTime close = from.toLocalDate().atTime(controller.getCloseTime());
 		if (from.isBefore(open)) return open;
-		else if (from.isAfter(close)) return from.toLocalDate().plusDays(1).atTime(controller.getOpenTime());
+		else if (from.isAfter(close)) {
+			return DateUtils.avoidWeekend(from.toLocalDate().plusDays(1).atTime(openTime), openTime);
+		}
 		return from;
 	}
 	
@@ -226,9 +231,11 @@ public class OrderForm extends JFrame {
 		if (checkOrder(id)) return;
 		
 		phasesList = new LinkedList<>();
+		double totalExternalHours = 0;
 		for (int i = 1; i <= externalPhases.size(); i++) {
 			PhaseInput externalPhase = externalPhases.get(i - 1);
 			double hours = externalPhase.getRawHours();
+			totalExternalHours += hours;
 			if (hours != 0) phasesList.add(new PhaseDTO(-i, hours, true));
 		}
 		
@@ -240,8 +247,8 @@ public class OrderForm extends JFrame {
 			if (hours != 0) phasesList.add(new PhaseDTO(i, hours, false));
 		}
 		
-		if (totalHours == 0) {
-			WarningMessage.show("Debes especificar como mínimo 1 fase.");
+		if (totalHours == 0 && totalExternalHours == 0) {
+			WarningMessage.show("Debes especificar como mínimo una fase o un proveedor.");
 			return;
 		}
 		

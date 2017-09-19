@@ -73,7 +73,7 @@ class Order implements Comparable<Order> {
 
 	@Override
 	public int compareTo(Order o) {
-		return getStartDate().compareTo(o.getStartDate());
+		return getScheduledFinishDate().compareTo(o.getScheduledFinishDate());
 	}
 
 	@Override

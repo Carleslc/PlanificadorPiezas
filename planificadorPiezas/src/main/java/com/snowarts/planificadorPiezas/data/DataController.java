@@ -43,7 +43,9 @@ public class DataController {
 		config = new Config();
 		boolean exists = checkDatabase();
 		database = new AccessDatabase(DATABASE_PATH);
-		if (!exists) database.update("CREATE TABLE pedidos (id_pedido TEXT NOT NULL, id_fase INTEGER NOT NULL, horas DOUBLE NOT NULL, fecha_inicio DATETIME NOT NULL, fecha_final DATETIME, externa BOOLEAN NOT NULL, PRIMARY KEY (id_pedido, id_fase))");
+		if (!exists) {
+			database.update("CREATE TABLE pedidos (id_pedido TEXT NOT NULL, id_fase INTEGER NOT NULL, horas DOUBLE NOT NULL, fecha_inicio DATETIME NOT NULL, fecha_final DATETIME, externa BOOLEAN NOT NULL, PRIMARY KEY (id_pedido, id_fase))");
+		}
 	}
 	
 	private static String getMainFolder() {

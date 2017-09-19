@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.time.LocalTime;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.stream.Collectors;
 
 import com.snowarts.planificadorPiezas.data.DataController;
@@ -52,8 +52,7 @@ class OrderProcessor {
 		List<Order> orders = dtos.stream().map(dto -> new Order(dto)).collect(Collectors.toCollection(LinkedList::new));
 		Scheduler scheduler = new Scheduler(data.getPhases(), openTime, data.getCloseTime());
 		
-		LinkedList<Phase> remaining = orders.stream().flatMap(o -> o.getPhases().stream()).collect(Collectors.toCollection(LinkedList::new));
-		Collections.sort(remaining);
+		PriorityQueue<Phase> remaining = orders.stream().flatMap(o -> o.getPhases().stream()).collect(Collectors.toCollection(PriorityQueue::new));
 		
 		while (!remaining.isEmpty()) {
 			Phase phase = remaining.poll();
@@ -64,17 +63,19 @@ class OrderProcessor {
 		scheduleLog.println("RESULTADOS");
 		orders.stream().sorted((o1, o2) -> o1.getScheduledFinishDate().compareTo(o2.getScheduledFinishDate())).forEach(o -> {
 			Result result = new Result(o.getId(), o.getScheduledFinishDate());
-			results.add(result);
+			addResult(result);
 			scheduleLog.println(result);
 		});
-		saveResults();
 		scheduleLog.close();
 	}
 	
-	private void saveResults() throws ClassNotFoundException, SQLException {
-		for (Result result : results) {
-			if (result.getId().equals(order.getId())) this.result = result;
+	private void addResult(Result result) {
+		results.add(result);
+		if (result.getId().equals(order.getId())) this.result = result;
+		try {
 			data.setFinishDate(result.getId(), result.getFinishDate());
+		} catch (SQLException | ClassNotFoundException e) {
+			throw new RuntimeException(e);
 		}
 	}
 }

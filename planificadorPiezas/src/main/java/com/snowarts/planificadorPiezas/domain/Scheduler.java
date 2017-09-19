@@ -4,9 +4,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.PriorityQueue;
+
+import com.snowarts.planificadorPiezas.data.utils.DateUtils;
 
 class Scheduler {
 	
@@ -24,7 +26,11 @@ class Scheduler {
 		for (int i = 1; i <= numPhases; i++) phases.add(new LinkedList<>());
 	}
 	
-	void add(Phase phase, Deque<Phase> remaining) {
+	void add(Phase phase, PriorityQueue<Phase> remaining) {
+		if (!phase.equals(phase.getRelated().getState())) {
+			postpone(phase, remaining);
+			return;
+		}
 		LinkedList<WorkDay> phaseQueue = phases.get(phase.getId() - 1);
 		if (phaseQueue.isEmpty()) {
 			LocalDateTime startDate = phase.getRelated().getStartDate();
@@ -34,13 +40,12 @@ class Scheduler {
 		WorkDay currentDay = phaseQueue.getLast();
 		LocalDateTime start = currentDay.getCurrentTime();
 		LocalDateTime lastScheduledPhaseTime = fixDate(phase.getRelated().getScheduledFinishDate());
-		if (!phase.equals(phase.getRelated().getState()) || start.isBefore(lastScheduledPhaseTime)) {
+		if (start.isBefore(lastScheduledPhaseTime)) {
 			if (phase.isPostponed()) {
 				currentDay.setCurrentTime(lastScheduledPhaseTime);
 				start = lastScheduledPhaseTime;
 			} else {
-				remaining.add(phase);
-				phase.setPostponed();
+				postpone(phase, remaining);
 				return;
 			}
 		}
@@ -57,14 +62,19 @@ class Scheduler {
 			double rawHoursSecond = splittedMinutes/60.0;
 			Phase second = new Phase(phase.getId(), rawHoursSecond, false, phase.getRelated());
 			scheduled = new ScheduledPhase(first, start, start.plusMinutes(remainingMinutes));
-			remaining.push(second);
+			remaining.add(second);
 		}
 		add(scheduled, currentDay, phaseQueue);
 	}
 	
+	private void postpone(Phase phase, PriorityQueue<Phase> remaining) {
+		remaining.add(phase);
+		phase.setPostponed();
+	}
+	
 	private LocalDateTime fixDate(LocalDateTime current) {
-		if (current.toLocalTime().isAfter(dayClosing)) current = current.toLocalDate().plusDays(1).atTime(dayOpening);
-		return current;
+		if (current.toLocalTime().plusMinutes(1).isAfter(dayClosing)) current = current.toLocalDate().plusDays(1).atTime(dayOpening);
+		return DateUtils.avoidWeekend(current, dayOpening);
 	}
 	
 	private void add(ScheduledPhase scheduled, WorkDay workDay, LinkedList<WorkDay> phaseQueue) {
