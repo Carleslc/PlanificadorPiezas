@@ -5,7 +5,7 @@ import java.time.format.FormatStyle;
 
 import static com.snowarts.planificadorPiezas.data.utils.DateUtils.format;
 
-class ScheduledPhase {
+class ScheduledPhase implements Comparable<ScheduledPhase> {
 
 	private Phase phase;
 	private LocalDateTime start, finish;
@@ -16,16 +16,23 @@ class ScheduledPhase {
 		this.finish = finish;
 	}
 
-	public Phase getPhase() {
+	Phase getPhase() {
 		return phase;
 	}
 	
-	public LocalDateTime getScheduledStartDate() {
+	LocalDateTime getScheduledStartDate() {
 		return start;
 	}
 	
-	public LocalDateTime getScheduledFinishDate() {
+	LocalDateTime getScheduledFinishDate() {
 		return finish;
+	}
+	
+	@Override
+	public int compareTo(ScheduledPhase o) {
+		int c = start.compareTo(o.start);
+		if (c == 0) c = finish.compareTo(o.finish);
+		return c;
 	}
 	
 	@Override

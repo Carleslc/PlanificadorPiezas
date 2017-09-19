@@ -2,7 +2,6 @@ package com.snowarts.planificadorPiezas.data;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -37,14 +36,16 @@ public class DataController {
 	
 	private Config config;
 	private Database database;
-	private PreparedStatement insertPstmnt, updatePstmnt;
+	private PreparedStatement insertOrderPstmnt, insertPhasePstmnt, updateFinalDatePstmnt;
 	
 	public DataController() throws IOException, InvalidConfigurationException, ClassNotFoundException, SQLException {
 		config = new Config();
 		boolean exists = checkDatabase();
 		database = new AccessDatabase(DATABASE_PATH);
 		if (!exists) {
-			database.update("CREATE TABLE pedidos (id_pedido TEXT NOT NULL, id_fase INTEGER NOT NULL, horas DOUBLE NOT NULL, fecha_inicio DATETIME NOT NULL, fecha_final DATETIME, externa BOOLEAN NOT NULL, PRIMARY KEY (id_pedido, id_fase))");
+			database.update("CREATE TABLE pedidos (id_pedido TEXT PRIMARY KEY, fecha_inicio DATETIME NOT NULL, fecha_final DATETIME)");
+			database.update("CREATE TABLE fases (id_pedido TEXT NOT NULL, id_fase INTEGER NOT NULL, horas DOUBLE NOT NULL, externa BOOLEAN NOT NULL, PRIMARY KEY (id_pedido, id_fase))");
+			database.update("CREATE TABLE " + ScheduleDatabaseReporter.TABLE + " (id_pedido TEXT NOT NULL, id_fase INTEGER NOT NULL, fecha_inicio DATETIME NOT NULL, fecha_final DATETIME NOT NULL, PRIMARY KEY (id_pedido, id_fase, fecha_inicio, fecha_final))");
 		}
 	}
 	
@@ -71,16 +72,19 @@ public class DataController {
 	}
 	
 	private void checkStatements() throws ClassNotFoundException, SQLException {
-		if (insertPstmnt == null || insertPstmnt.isClosed()) {
-			insertPstmnt = database.preparedStatement("INSERT INTO pedidos (id_pedido, id_fase, horas, fecha_inicio, externa) VALUES (?, ?, ?, ?, ?)");
+		if (insertOrderPstmnt == null || insertOrderPstmnt.isClosed()) {
+			insertOrderPstmnt = database.preparedStatement("INSERT INTO pedidos (id_pedido, fecha_inicio) VALUES (?, ?)");
 		}
-		if (updatePstmnt == null || updatePstmnt.isClosed()) {
-			updatePstmnt = database.preparedStatement("UPDATE pedidos SET fecha_final = ? WHERE id_pedido = ?");
+		if (insertPhasePstmnt == null || insertPhasePstmnt.isClosed()) {
+			insertPhasePstmnt = database.preparedStatement("INSERT INTO fases (id_pedido, id_fase, horas, externa) VALUES (?, ?, ?, ?)");
+		}
+		if (updateFinalDatePstmnt == null || updateFinalDatePstmnt.isClosed()) {
+			updateFinalDatePstmnt = database.preparedStatement("UPDATE pedidos SET fecha_final = ? WHERE id_pedido = ?");
 		}
 	}
 	
-	public PrintWriter getScheduleWriter() throws IOException {
-		return new PrintWriter(SCHEDULER_PATH);
+	public Reporter getScheduleReporter() throws IOException {
+		return new MixedReporter(new FileReporter(SCHEDULER_PATH), new ScheduleDatabaseReporter(database));
 	}
 	
 	public void save(OrderDTO order) throws ClassNotFoundException, SQLException {
@@ -92,28 +96,33 @@ public class DataController {
 	private void insert(OrderDTO order) throws ClassNotFoundException, SQLException {
 		Validate.notNull(order);
 		checkStatements();
-		insertPstmnt.setString(1, order.getId());
-		insertPstmnt.setTimestamp(4, new Timestamp(DateUtils.getEpochMillis(order.getStartDate())));
+		insertOrderPstmnt.setString(1, order.getId());
+		insertOrderPstmnt.setTimestamp(2, new Timestamp(DateUtils.getEpochMillis(order.getStartDate())));
+		insertOrderPstmnt.executeUpdate();
+		insertPhasePstmnt.setString(1, order.getId());
 		for (PhaseDTO phase : order.getPhases()) {
-			insertPstmnt.setInt(2, phase.getId());
-			insertPstmnt.setDouble(3, phase.getRawHours());
-			insertPstmnt.setBoolean(5, phase.isExternal());
-			insertPstmnt.executeUpdate();
+			insertPhasePstmnt.setInt(2, phase.getId());
+			insertPhasePstmnt.setDouble(3, phase.getRawHours());
+			insertPhasePstmnt.setBoolean(4, phase.isExternal());
+			insertPhasePstmnt.executeUpdate();
 		}
 	}
 	
 	public void setFinishDate(String orderId, LocalDateTime date) throws ClassNotFoundException, SQLException {
 		Validate.notNull(orderId);
 		checkStatements();
-		if (date == null) updatePstmnt.setNull(1, Types.TIMESTAMP);
-		else updatePstmnt.setTimestamp(1, new Timestamp(DateUtils.getEpochMillis(date)));
-		updatePstmnt.setString(2, orderId);
-		updatePstmnt.executeUpdate();
+		if (date == null) updateFinalDatePstmnt.setNull(1, Types.TIMESTAMP);
+		else updateFinalDatePstmnt.setTimestamp(1, new Timestamp(DateUtils.getEpochMillis(date)));
+		updateFinalDatePstmnt.setString(2, orderId);
+		updateFinalDatePstmnt.executeUpdate();
 	}
 	
 	public List<OrderDTO> getAll() throws ClassNotFoundException, SQLException {
 		List<OrderDTO> all = new ArrayList<>();
-		ResultSet orders = database.query("SELECT id_pedido, id_fase, horas, fecha_inicio, fecha_final, externa FROM pedidos ORDER BY fecha_inicio, id_pedido, id_fase");
+		ResultSet orders = database.query(
+				"SELECT id_pedido, id_fase, horas, fecha_inicio, fecha_final, externa "
+				+ "FROM pedidos INNER JOIN fases ON pedidos.id_pedido = fases.id_pedido "
+				+ "ORDER BY fecha_inicio, id_pedido, id_fase");
 		String lastOrderId = null;
 		LocalDateTime lastOrderStartDate = null;
 		LocalDateTime lastOrderEndDate = null;
@@ -139,7 +148,10 @@ public class DataController {
 	
 	public OrderDTO get(String orderId) throws ClassNotFoundException, SQLException {
 		Validate.notNull(orderId);
-		ResultSet order = database.query("SELECT id_fase, horas, fecha_inicio, fecha_final, externa FROM pedidos WHERE id_pedido = '" + orderId + "'");
+		ResultSet order = database.query(
+				"SELECT id_fase, horas, fecha_inicio, fecha_final, externa "
+				+ "FROM pedidos INNER JOIN fases ON pedidos.id_pedido = fases.id_pedido "
+				+ "WHERE id_pedido = '" + orderId + "'");
 		order.next(); // Throws exception if not exists
 		List<PhaseDTO> phases = new LinkedList<>();
 		LocalDateTime startDate = DateUtils.getLocalDateTime(order.getTimestamp(3));
@@ -160,8 +172,10 @@ public class DataController {
 	}
 	
 	public void delete(String orderId) throws ClassNotFoundException, SQLException {
-		Validate.notNull(orderId);
-		database.update("DELETE FROM pedidos" + (orderId != null ? " WHERE id_pedido = '" + orderId + "'" : ""));
+		String condition = "";
+		if (orderId != null) condition = " WHERE id_pedido = '" + orderId + "'";
+		database.update("DELETE FROM pedidos" + condition);
+		database.update("DELETE FROM fases" + condition);
 	}
 	
 	public int getPhases() {

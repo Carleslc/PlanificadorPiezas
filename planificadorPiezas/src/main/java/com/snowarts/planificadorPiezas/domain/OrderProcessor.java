@@ -1,7 +1,6 @@
 package com.snowarts.planificadorPiezas.domain;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.time.LocalTime;
 import java.util.LinkedList;
@@ -10,6 +9,7 @@ import java.util.PriorityQueue;
 import java.util.stream.Collectors;
 
 import com.snowarts.planificadorPiezas.data.DataController;
+import com.snowarts.planificadorPiezas.data.Reporter;
 
 class OrderProcessor {
 	
@@ -43,11 +43,12 @@ class OrderProcessor {
 	
 	private void compute() throws ClassNotFoundException, SQLException, IOException {
 		data.save(order.toDTO());
-		PrintWriter scheduleLog = data.getScheduleWriter();
+		Reporter reporter = data.getScheduleReporter();
+		reporter.clear();
+		
 		List<OrderDTO> dtos = data.getAll();
-		scheduleLog.println("PEDIDOS");
-		scheduleLog.println(String.join("\n", dtos.stream().map(OrderDTO::toString).collect(Collectors.toList())));
-		scheduleLog.println(); scheduleLog.println();
+		reporter.writeOrders(dtos);
+		
 		LocalTime openTime = data.getOpenTime();
 		List<Order> orders = dtos.stream().map(dto -> new Order(dto)).collect(Collectors.toCollection(LinkedList::new));
 		Scheduler scheduler = new Scheduler(data.getPhases(), openTime, data.getCloseTime());
@@ -59,17 +60,19 @@ class OrderProcessor {
 			scheduler.add(phase, remaining);
 		}
 		
-		scheduleLog.println(scheduler);
-		scheduleLog.println("RESULTADOS");
+		reporter.writeSchedule(scheduler.getScheduledPhases().stream()
+				.map(scheduledPhase -> new ScheduledPhaseDTO(scheduledPhase))
+				.collect(Collectors.toList()));
+		
 		orders.stream().sorted((o1, o2) -> o1.getScheduledFinishDate().compareTo(o2.getScheduledFinishDate())).forEach(o -> {
 			Result result = new Result(o.getId(), o.getScheduledFinishDate());
-			addResult(result);
-			scheduleLog.println(result);
+			addResult(result, reporter);
 		});
-		scheduleLog.close();
+		reporter.writeResults(results);
+		reporter.close();
 	}
 	
-	private void addResult(Result result) {
+	private void addResult(Result result, Reporter reporter) {
 		results.add(result);
 		if (result.getId().equals(order.getId())) this.result = result;
 		try {
