@@ -16,6 +16,14 @@ class MixedReporter implements Reporter {
 		this.reporters = Arrays.asList(reporters);
 	}
 	
+	public boolean addReporter(Reporter reporter) {
+		return reporters.add(reporter);
+	}
+	
+	public boolean removeReporter(Reporter reporter) {
+		return reporters.remove(reporter);
+	}
+	
 	@Override
 	public void writeOrder(OrderDTO order) throws IOException {
 		for (Reporter reporter : reporters) reporter.writeOrder(order);

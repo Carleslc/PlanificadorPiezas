@@ -65,14 +65,13 @@ class OrderProcessor {
 				.collect(Collectors.toList()));
 		
 		orders.stream().sorted((o1, o2) -> o1.getScheduledFinishDate().compareTo(o2.getScheduledFinishDate())).forEach(o -> {
-			Result result = new Result(o.getId(), o.getScheduledFinishDate());
-			addResult(result, reporter);
+			addResult(new Result(o.getId(), o.getScheduledFinishDate()));
 		});
 		reporter.writeResults(results);
 		reporter.close();
 	}
 	
-	private void addResult(Result result, Reporter reporter) {
+	private void addResult(Result result) {
 		results.add(result);
 		if (result.getId().equals(order.getId())) this.result = result;
 		try {

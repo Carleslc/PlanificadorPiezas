@@ -57,8 +57,8 @@ class FileReporter implements Reporter {
 	
 	@Override
 	public void clear() throws IOException {
-		Files.deleteIfExists(new File(path).toPath());
 		close();
+		Files.deleteIfExists(new File(path).toPath());
 		scheduleLog = new PrintWriter(path);
 	}
 	

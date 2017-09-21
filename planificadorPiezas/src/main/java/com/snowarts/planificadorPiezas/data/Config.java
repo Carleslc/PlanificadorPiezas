@@ -20,6 +20,7 @@ class Config {
 
 	private YamlFile config;
 	private int phases, externalPhases;
+	private boolean fileReport;
 	private Map<Integer, String> tags, externalTags;
 	private LocalTime dayOpeningTime, dayClosingTime;
 
@@ -36,6 +37,7 @@ class Config {
 		dayClosingTime = LocalTime.parse(config.getString("hora_cierre"), timeFormat);
 		phases = config.getInt("fases.total");
 		externalPhases = config.getInt("fases_externas.total");
+		fileReport = config.getBoolean("generar_informe", true);
 		
 		try {
 			ConfigurationSection tagsSection = config.getConfigurationSection("fases.etiquetas");
@@ -69,6 +71,10 @@ class Config {
 
 	LocalTime getDayClosingTime() {
 		return dayClosingTime;
+	}
+	
+	boolean needsReport() {
+		return fileReport;
 	}
 	
 	private void saveDefaultConfig() throws IOException {

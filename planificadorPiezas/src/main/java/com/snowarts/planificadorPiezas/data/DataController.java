@@ -84,7 +84,9 @@ public class DataController {
 	}
 	
 	public Reporter getScheduleReporter() throws IOException {
-		return new MixedReporter(new FileReporter(SCHEDULER_PATH), new ScheduleDatabaseReporter(database));
+		MixedReporter mixed = new MixedReporter(new ScheduleDatabaseReporter(database));
+		if (config.needsReport()) mixed.addReporter(new FileReporter(SCHEDULER_PATH));
+		return mixed;
 	}
 	
 	public void save(OrderDTO order) throws ClassNotFoundException, SQLException {

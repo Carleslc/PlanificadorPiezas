@@ -1,3 +1,5 @@
+generar_informe: true
+
 # Intervalo de trabajo
 hora_apertura: "08:00"
 hora_cierre: "16:00"
